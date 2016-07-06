@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="10174" systemVersion="15F34" minimumToolsVersion="Xcode 7.0">
+    <entity name="Playlist" representedClassName=".Playlist" syncable="YES">
+        <attribute name="changeToken" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="dateCreated" attributeType="Date" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="isPublic" attributeType="Boolean" syncable="YES"/>
+        <attribute name="name" attributeType="String" syncable="YES"/>
+        <attribute name="nowPlaying" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="passcode" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="creator" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="created" inverseEntity="User" syncable="YES"/>
+        <relationship name="followers" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="following" inverseEntity="User" syncable="YES"/>
+        <relationship name="songs" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Song" inverseName="playlist" inverseEntity="Song" syncable="YES"/>
+    </entity>
+    <entity name="Song" representedClassName=".Song" syncable="YES">
+        <attribute name="artist" attributeType="String" syncable="YES"/>
+        <attribute name="changeToken" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="dateCreated" attributeType="Date" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="image" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="imageURL" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="previouslyPlayed" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="title" attributeType="String" syncable="YES"/>
+        <attribute name="trackID" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="addedBy" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="addedSongs" inverseEntity="User" syncable="YES"/>
+        <relationship name="playlist" maxCount="1" deletionRule="Nullify" destinationEntity="Playlist" inverseName="songs" inverseEntity="Playlist" syncable="YES"/>
+        <relationship name="votes" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Vote" inverseName="song" inverseEntity="Vote" syncable="YES"/>
+    </entity>
+    <entity name="User" representedClassName=".User" syncable="YES">
+        <attribute name="changeToken" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="firstName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="lastName" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="addedSongs" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Song" inverseName="addedBy" inverseEntity="Song" syncable="YES"/>
+        <relationship name="created" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Playlist" inverseName="creator" inverseEntity="Playlist" syncable="YES"/>
+        <relationship name="following" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Playlist" inverseName="followers" inverseEntity="Playlist" syncable="YES"/>
+        <relationship name="votes" optional="YES" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Vote" inverseName="creator" inverseEntity="Vote" syncable="YES"/>
+    </entity>
+    <entity name="Vote" representedClassName=".Vote" syncable="YES">
+        <attribute name="changeToken" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="dateCreated" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="vote" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <relationship name="creator" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="votes" inverseEntity="User" syncable="YES"/>
+        <relationship name="song" maxCount="1" deletionRule="Nullify" destinationEntity="Song" inverseName="votes" inverseEntity="Song" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="Playlist" positionX="-486" positionY="-217" width="128" height="193"/>
+        <element name="Song" positionX="-731" positionY="-189" width="128" height="223"/>
+        <element name="User" positionX="-0" positionY="-162" width="128" height="178"/>
+        <element name="Vote" positionX="-470" positionY="-18" width="128" height="133"/>
+    </elements>
+</model>
