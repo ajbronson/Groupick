@@ -33,14 +33,15 @@ class SearchPlaylistResultsTableViewController: UITableViewController, joinProto
     }
     
     func buttonTapped(playlist: TempPlaylist) {
-        if playlist.isPublic {
-            PlaylistController.sharedController.joinPlaylist(playlist)
-            self.dismissViewControllerAnimated(true, completion: nil)
-            delegate?.dismiss()
-        } else {
-            showAlert(playlist)
+        if playlist.creator != nil {
+            if playlist.isPublic {
+                PlaylistController.sharedController.joinPlaylist(playlist)
+                self.dismissViewControllerAnimated(true, completion: nil)
+                delegate?.dismiss()
+            } else {
+                showAlert(playlist)
+            }
         }
-
     }
     
     func showAlert(playlist: TempPlaylist) {

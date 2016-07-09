@@ -19,12 +19,23 @@ class JoinPlaylistTableViewCell: UITableViewCell {
     func updateWith(playlist: TempPlaylist) {
         self.playlist = playlist
         playlistLabel.text = playlist.name
-        if let first = playlist.creator.firstName,
-            let last = playlist.creator.lastName {
-            creatorLabel.text = "By \(first) \(last.substringToIndex(last.startIndex.advancedBy(1)))."
+        creatorLabel.text = ""
+        if let user = UserController.userWithID(playlist.creatorRecord), first = user.firstName, last = user.lastName {
+            self.creatorLabel.text = "By \(first) \(last.substringToIndex(last.startIndex.advancedBy(1)))."
+            playlist.creator = user
         } else {
-            creatorLabel.text = ""
-        }
+            CloudKitManager.sharedManager.fetchRecordWithID(playlist.creatorRecord) { (record, error) in
+                if let record = record {
+                    let user = User(record: record)
+                    if let user = user, first = user.firstName, last = user.lastName {
+                        dispatch_async(dispatch_get_main_queue(), { 
+                            self.creatorLabel.text = "By \(first) \(last.substringToIndex(last.startIndex.advancedBy(1)))."
+                            self.playlist?.creator = user
+                        })
+                    }
+                }
+            }
+       }
     }
     
     @IBAction func joinButtonTapped(sender: UIButton) {

@@ -15,7 +15,7 @@ import CoreData
 extension Vote {
 
     @NSManaged var dateCreated: NSDate?
-    @NSManaged var id: String?
+    @NSManaged var id: String
     @NSManaged var vote: NSNumber?
     @NSManaged var changeToken: String?
     @NSManaged var song: Song

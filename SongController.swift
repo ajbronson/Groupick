@@ -18,8 +18,15 @@ class SongController {
     static let sharedController = SongController()
     
     func addSongToPlaylist(playlist: Playlist, title: String, artist: String, trackID: String, image: NSData?) {
-        let _ = Song(playlist: playlist, title: title, artist: artist, trackID: trackID, image: image)
+        let song = Song(playlist: playlist, title: title, artist: artist, trackID: trackID, image: image)
         PlaylistController.sharedController.save()
+        if let songRecord = song.cloudKitRecord {
+            CloudKitManager.sharedManager.saveRecord(songRecord, completion: { (record, error) in
+                if let record = record {
+                    song.update(record)
+                }
+            })
+        }
     }
     
     func deleteSong(song: Song) {
@@ -38,13 +45,23 @@ class SongController {
     
     func addVoteToSong(song: Song, vote: Int) {
         if let user = UserController.getUser() {
-            let _ = Vote(song: song, creator: user, vote: vote)
+            let vote = Vote(song: song, creator: user, vote: vote)
             PlaylistController.sharedController.save()
+            if let vote = vote, voteRecord = vote.cloudKitRecord {
+                CloudKitManager.sharedManager.saveRecord(voteRecord, completion: { (record, error) in
+                    if let record = record {
+                        vote.update(record)
+                    } else if let error = error {
+                        print("error saving vote - \(error.localizedDescription)")
+                    }
+               })
+            }
         }
     }
     
     func deleteVote(vote: Vote) {
         vote.managedObjectContext?.deleteObject(vote)
+        deleteCloudKitVote(vote)
         PlaylistController.sharedController.save()
     }
     
@@ -52,12 +69,23 @@ class SongController {
         for song in songs {
             if let votes = song.votes?.array as? [Vote] {
                 for vote in votes {
+                    deleteCloudKitVote(vote)
                     vote.managedObjectContext?.deleteObject(vote)
                 }
             }
         }
 
         PlaylistController.sharedController.save()
+    }
+    
+    func deleteCloudKitVote(vote: Vote) {
+        if let voteRecord = vote.cloudKitRecord {
+            CloudKitManager.sharedManager.deleteRecordWithID(voteRecord.recordID, completion: { (recordID, error) in
+                if let error = error {
+                    print("error deleting vote - \(error.localizedDescription)")
+                }
+            })
+        }
     }
     
     func fetchSongsWithTerm(term:String, type: searchType, completion:(songs: [TempSong]) -> Void) {

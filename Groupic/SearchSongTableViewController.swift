@@ -30,6 +30,8 @@ class SearchSongTableViewController: UITableViewController, UISearchResultsUpdat
         searchController.definesPresentationContext = true
         searchController.searchBar.delegate = self
         searchController.searchBar.scopeButtonTitles = ["Song", "Artist"]
+        searchController.searchBar.setValue("Done", forKey: "_cancelButtonText")
+        
     }
     
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {

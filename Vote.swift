@@ -50,7 +50,6 @@ class Vote: NSManagedObject, CloudKitManagedObject {
     }
     
     var cloudKitRecord: CKRecord? {
-        guard let id = id else { return nil }
         let recordID = CKRecordID(recordName: id)
         let record = CKRecord(recordType: recordType, recordID: recordID)
         

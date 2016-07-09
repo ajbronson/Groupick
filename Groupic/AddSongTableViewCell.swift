@@ -25,6 +25,7 @@ class AddSongTableViewCell: UITableViewCell {
         titleLabel.text = song.title
         artistLabel.text = song.artist
         addButton.setImage(UIImage(named: "+Button"), forState: .Normal)
+        self.songImage.image = nil
         if let url = NSURL(string: song.imageURL) {
             ImageController.fetchImage(url, completion: { (image) in
                 dispatch_async(dispatch_get_main_queue(), { 

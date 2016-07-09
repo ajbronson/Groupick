@@ -36,19 +36,24 @@ class Playlist: NSManagedObject, CloudKitManagedObject {
     
     convenience init?(record: CKRecord, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
         guard let timestamp = record.creationDate,
-            let name = record["name"] as? String else { return nil }
+            let creator = record[kCreator] as? CKReference,
+            let isPublic = record[kIsPublic] as? Bool,
+            let name = record[kName] as? String else { return nil }
         guard let entity = NSEntityDescription.entityForName("Playlist", inManagedObjectContext: context) else { fatalError("Error: Core Data failed to create entity from entity description.") }
         
         self.init(entity: entity, insertIntoManagedObjectContext: context)
         self.dateCreated = timestamp
         self.name = name
+        self.isPublic = isPublic
         self.id = record.recordID.recordName
         self.changeToken = record.recordChangeTag
+        if let user = UserController.userWithID(creator.recordID) {
+            self.creator = user
+        }
         
     }
     
     var cloudKitRecord: CKRecord? {
-        guard let id = id else { return nil }
         let recordID = CKRecordID(recordName: id)
         let record = CKRecord(recordType: recordType, recordID: recordID)
         

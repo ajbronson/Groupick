@@ -29,10 +29,12 @@ class MusicController: NSObject {
         remoteCenter.pauseCommand.addTarget(self, action: #selector(pause))
         remoteCenter.nextTrackCommand.addTarget(self, action: #selector(nextButtonClicked))
         remoteCenter.togglePlayPauseCommand.addTarget(self, action: #selector(pause))
-
+        controller.beginGeneratingPlaybackNotifications()
     }
     
+    
     func setQueue(trackIDs: [String]) {
+        
         controller.setQueueWithStoreIDs(trackIDs)
     }
     

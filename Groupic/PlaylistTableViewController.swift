@@ -13,7 +13,11 @@ class PlaylistTableViewController: UITableViewController, NSFetchedResultsContro
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        UserController.saveUser(User(firstName: "AJ", lastName: "Bronson", id: UserController.getUserID())!)
+        
+        if UserController.getUser() == nil {
+            checkIfUserExists()
+        }
+
         PlaylistController.sharedController.fetchedResultsController.delegate = self
         self.navigationController?.toolbarHidden = true
     }
@@ -86,6 +90,71 @@ class PlaylistTableViewController: UITableViewController, NSFetchedResultsContro
     
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         tableView.endUpdates()
+    }
+    
+    
+    func checkIfUserExists() {
+        CloudKitManager.sharedManager.fetchLoggedInUserRecord { (record, error) in
+            if let userRecord = record {
+                let predicate = NSPredicate(format: "cloudKitRecordName = %@", argumentArray: [userRecord.recordID.recordName])
+                CloudKitManager.sharedManager.fetchRecordsWithType("User", predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
+                    if let records = records where records.count > 0 {
+                        let user = User(record: records[0])
+                        if let user = user {
+                            UserController.saveUser(user)
+                        } else {
+                            self.createUserAlertController(userRecord.recordID.recordName)
+                        }
+                    } else {
+                        self.createUserAlertController(userRecord.recordID.recordName)
+                    }
+                })
+            } else {
+                self.createUserAlertController(NSUUID().UUIDString)
+            }
+        }
+    }
+    
+    
+    var firstNameTextField: UITextField?
+    var lastNameTextField: UITextField?
+    
+    func createUserAlertController(identifier: String) {
+        let alert = UIAlertController(title: "Welcome!", message: "Please Enter Your First and Last Name.\n\n This is for your friends to identify you with playlists that you create, and playlists that you join.", preferredStyle: .Alert)
+        alert.addTextFieldWithConfigurationHandler { (text) in
+            text.placeholder = "First Name"
+            self.firstNameTextField = text
+            text.addTarget(self, action: #selector(PlaylistTableViewController.textChanged(_:)), forControlEvents: .EditingChanged)
+        }
+        alert.addTextFieldWithConfigurationHandler { (text) in
+            text.placeholder = "Last Name"
+            self.lastNameTextField = text
+            text.addTarget(self, action: #selector(PlaylistTableViewController.textChanged(_:)), forControlEvents: .EditingChanged)
+        }
+        let okAction = UIAlertAction(title: "Done", style: .Default) { (_) in
+            guard let first = self.firstNameTextField?.text, last = self.lastNameTextField?.text where first.characters.count > 0 && last.characters.count > 0  else { return }
+            let user = User(firstName: first, lastName: last, cloudKitRecordName: identifier)
+            if let user = user {
+                UserController.saveUser(user)
+            } else {
+                self.createUserAlertController(identifier)
+            }
+        }
+        alert.addAction(okAction)
+        alert.actions[0].enabled = false
+        dispatch_async(dispatch_get_main_queue()) { 
+            self.presentViewController(alert, animated: true, completion: nil)
+        }
+        
+    }
+    
+    func textChanged(sender:AnyObject) {
+        guard let firstNameTextField = firstNameTextField, lastNameTextField = lastNameTextField else { return }
+        let tf = sender as! UITextField
+        var resp : UIResponder = tf
+        while !(resp is UIAlertController) { resp = resp.nextResponder()! }
+        let alert = resp as! UIAlertController
+        (alert.actions[0] as UIAlertAction).enabled = (firstNameTextField.text != "" && lastNameTextField.text != "")
     }
 
 }

@@ -15,7 +15,7 @@ import CoreData
 extension Playlist {
     
     @NSManaged var name: String
-    @NSManaged var id: String?
+    @NSManaged var id: String
     @NSManaged var passcode: String?
     @NSManaged var isPublic: NSNumber
     @NSManaged var dateCreated: NSDate

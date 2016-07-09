@@ -17,7 +17,7 @@ extension Song {
     @NSManaged var artist: String?
     @NSManaged var changeToken: String?
     @NSManaged var dateCreated: NSDate
-    @NSManaged var id: String?
+    @NSManaged var id: String
     @NSManaged var image: NSData?
     @NSManaged var imageURL: String?
     @NSManaged var title: String?

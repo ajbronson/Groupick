@@ -13,6 +13,7 @@ import CloudKit
 public let kFirst = "first"
 public let kLast = "last"
 public let kID = "id"
+public let kCloudKitRecordName = "cloudKitRecordName"
 
 class User: NSManagedObject, CloudKitManagedObject {
     
@@ -20,12 +21,13 @@ class User: NSManagedObject, CloudKitManagedObject {
         return "User"
     }
     
-    convenience init?(firstName: String, lastName: String, id: String, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
+    convenience init?(firstName: String, lastName: String, id: String = NSUUID().UUIDString, cloudKitRecordName: String?, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
         guard let entity = NSEntityDescription.entityForName("User", inManagedObjectContext: context) else { fatalError("Core data failed to create entity") }
         self.init(entity: entity, insertIntoManagedObjectContext: context)
         self.firstName = firstName
         self.lastName = lastName
         self.id = id
+        self.cloudKitRecordName = cloudKitRecordName
     }
     
     convenience init?(record: CKRecord, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
@@ -37,32 +39,48 @@ class User: NSManagedObject, CloudKitManagedObject {
         self.firstName = firstName
         self.lastName = lastName
         self.id = record.recordID.recordName
+        if let ckid = record[kCloudKitRecordName] as? String {
+           self.cloudKitRecordName = ckid
+        } else {
+            self.cloudKitRecordName = nil
+        }
+        
         self.changeToken = record.recordChangeTag
         
     }
     
     var dictionaryCopy: [String: AnyObject] {
         guard let firstName = firstName,
-            let lastName = lastName,
-            let id = id else { return [:] }
-        return [
-            kFirst:firstName,
-            kLast:lastName,
-            kID:id
-        ]
+            let lastName = lastName else { return [:] }
+        if let ckid = cloudKitRecordName {
+            return [
+                kFirst:firstName,
+                kLast:lastName,
+                kID:id,
+                kCloudKitRecordName:ckid
+            ]
+        } else {
+            return [
+                kFirst:firstName,
+                kLast:lastName,
+                kID:id,
+            ]
+        }
+
     }
     
     var cloudKitRecord: CKRecord? {
         
-        guard let id = id else { return nil }
         let recordID = CKRecordID(recordName: id)
         let record = CKRecord(recordType: recordType, recordID: recordID)
         
         record[kLast] = lastName
         record[kFirst] = firstName
+        record[kCloudKitRecordName] = cloudKitRecordName
         
         return record
     }
     
 }
+
 

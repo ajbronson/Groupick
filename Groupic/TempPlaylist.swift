@@ -8,6 +8,7 @@
 
 import Foundation
 import CloudKit
+import CoreData
 
 class TempPlaylist {
     
@@ -18,7 +19,9 @@ class TempPlaylist {
     let dateCreated: NSDate
     let changeToken: String?
     let nowPlaying: String?
-    let creator: User
+    var creatorRecord: CKRecordID
+    var creator: User?
+    var ckRecord: CKRecord
     //songs relationship
     //followers user relationship
     
@@ -26,32 +29,34 @@ class TempPlaylist {
     init?(record: CKRecord) {
         guard let dateCreated = record[kDateCreated] as? NSDate,
             let name = record[kName] as? String,
-            let isPublic = record[kIsPublic] as? Bool,
-            let passcode = record[kPasscode] as? String,
-            let nowPlaying = record[kNowPlaying] as? String else { return nil }
+            let creatorReference = record[kCreator] as? CKReference,
+            let isPublic = record[kIsPublic] as? Bool else { return nil }
         self.dateCreated = dateCreated
         self.name = name
         self.id = record.recordID.recordName
         self.changeToken = record.recordChangeTag
-        self.nowPlaying = nowPlaying
-        self.passcode = passcode
+        if let nowPlaying = record[kNowPlaying] as? String {
+            self.nowPlaying = nowPlaying
+        } else {
+            self.nowPlaying = nil
+        }
+        if let passcode = record[kPasscode] as? String {
+            self.passcode = passcode
+        } else {
+            self.passcode = nil
+        }
+        
         self.isPublic = isPublic
-        self.creator = User(firstName: "Brandi", lastName: "Bronson", id: NSUUID().UUIDString)!
+        self.creatorRecord = creatorReference.recordID
+        self.ckRecord = record
     }
     
-    init(name: String, passcode: String? = "1234", id: String = NSUUID().UUIDString, dateCreated: NSDate = NSDate()) {
-        self.name = name
-        self.passcode = passcode
-        self.id = id
-        self.dateCreated = dateCreated
-        if passcode == nil {
-            self.isPublic = true
-        } else {
-            self.isPublic = false
-        }
-        self.creator = User(firstName: "Brandi", lastName: "Bronson", id: NSUUID().UUIDString)!
-        self.changeToken = nil
-        self.nowPlaying = nil
+    var cloudKitRecordID: CKRecordID {
+        return CKRecordID(recordName: id)
     }
+    
 }
+
+
+
 

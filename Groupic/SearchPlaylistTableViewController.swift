@@ -35,15 +35,32 @@ class SearchPlaylistTableViewController: UITableViewController, UISearchResultsU
     func updateSearchResultsForSearchController(searchController: UISearchController) {
         guard let text = searchController.searchBar.text?.lowercaseString,
             let resultsViewController = searchController.searchResultsController as? SearchPlaylistResultsTableViewController  where text.characters.count > 0 else { return }
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         resultsViewController.delegate = self
         resultsViewController.resultPlaylists = [TempPlaylist]()
-        for i in 0...text.characters.count {
-            resultsViewController.resultPlaylists.append(TempPlaylist(name: "This is a Test Playlist - \(i + 1)"))
+        searchCloudKit(text) { (playlists) in
+            dispatch_async(dispatch_get_main_queue(), { 
+                resultsViewController.resultPlaylists = playlists
+                resultsViewController.tableView.reloadData()
+            })
         }
-        resultsViewController.resultPlaylists.append(TempPlaylist(name: "A public playlist", passcode: nil, id: NSUUID().UUIDString, dateCreated: NSDate()))
-        resultsViewController.tableView.reloadData()
-        //UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-        //UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+    }
+    
+    func searchCloudKit(searchText: String, completion: ([TempPlaylist]) -> Void) {
+        let predicate = NSPredicate(format: "self contains %@", argumentArray: [searchText])
+        var arrayPlaylist = [TempPlaylist]()
+        CloudKitManager.sharedManager.fetchRecordsWithType("Playlist", predicate: predicate, recordFetchedBlock: nil) { (records, error) in
+            if let records = records {
+                for record in records {
+                    let tempPlaylist = TempPlaylist(record: record)
+                    if let tempPlaylist = tempPlaylist {
+                        arrayPlaylist.append(tempPlaylist)
+                    }
+                }
+            }
+            completion(arrayPlaylist)
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        }
     }
 
     // MARK: - Table view data source

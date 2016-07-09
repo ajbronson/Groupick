@@ -19,6 +19,8 @@ class Song: NSManagedObject, CloudKitManagedObject {
     private let kImage = "image"
     private let kPlaylist = "playlist"
     private let kDateCreated = "dateCreated"
+    private let kPreviouslyPlayed = "previouslyPlayed"
+    private let kAddedBy = "addedBy"
     
     var recordType: String {
         return "Song"
@@ -38,15 +40,17 @@ class Song: NSManagedObject, CloudKitManagedObject {
     
     
     convenience init?(record: CKRecord, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
-        guard let timestamp = record.creationDate,
-            let title = record["title"] as? String,
-            let artist = record["artist"] as? String,
-            let trackID = record["trackID"] as? String,
-            let image = record["image"] as? NSData,
-            let playlist = record["playlist"] as? Playlist else { return nil }
         guard let entity = NSEntityDescription.entityForName("Playlist", inManagedObjectContext: context) else { fatalError("Error: Core Data failed to create entity from entity description.") }
-        
         self.init(entity: entity, insertIntoManagedObjectContext: context)
+        
+        guard let timestamp = record.creationDate,
+            let title = record[kTitle] as? String,
+            let artist = record[kArtist] as? String,
+            let trackID = record[kTrackID] as? String,
+            let image = record[kImage] as? NSData,
+            let previouslyPlayed = record[kPreviouslyPlayed] as? Bool,
+            let playlist = record[kPlaylist] as? Playlist else { return nil }
+        
         self.dateCreated = timestamp
         self.title = title
         self.id = record.recordID.recordName
@@ -54,11 +58,12 @@ class Song: NSManagedObject, CloudKitManagedObject {
         self.artist = artist
         self.trackID = trackID
         self.playlist = playlist
+        self.previouslyPlayed = previouslyPlayed
         self.image = image
+        //TODO: added by needs to be done here
     }
     
     var cloudKitRecord: CKRecord? {
-        guard let id = id else { return nil }
         let recordID = CKRecordID(recordName: id)
         let record = CKRecord(recordType: recordType, recordID: recordID)
         
@@ -66,18 +71,24 @@ class Song: NSManagedObject, CloudKitManagedObject {
         record[kArtist] = artist
         record[kTrackID] = trackID
         record[kDateCreated] = dateCreated
+        record[kPreviouslyPlayed] = previouslyPlayed
         if let temporaryPhotoURL = temporaryPhotoURL {
             record[kImage] = CKAsset(fileURL: temporaryPhotoURL)
         }
         
-        guard let playlistRecordID = playlist.cloudKitRecord  else { fatalError("Vote does not have a Creator relationship") }
+        guard let playlistRecordID = playlist.cloudKitRecord  else { fatalError("Song does not have a Playlist relationship") }
         record[kPlaylist] = CKReference(record: playlistRecordID, action: .DeleteSelf)
+        
+        if let addedBy = addedBy {
+            guard let userRecordID = addedBy.cloudKitRecord  else { fatalError("Song does not have a Added By relationship") }
+            record[kAddedBy] = CKReference(record: userRecordID, action: .DeleteSelf)
+        }
         
         return record
     }
     
     lazy var temporaryPhotoURL: NSURL? = {
-        guard let id = self.id, image = self.image else { return nil }
+        guard let image = self.image else { return nil }
         // must write to temporary directory to be able to pass image url to CKAsset
         
         let temporaryDirectory = NSTemporaryDirectory()
@@ -86,7 +97,7 @@ class Song: NSManagedObject, CloudKitManagedObject {
         
         //set the UUID to a unique Identifier
         
-        let fileURL = temporaryDirectoryURL.URLByAppendingPathComponent(id).URLByAppendingPathExtension("jpg")
+        let fileURL = temporaryDirectoryURL.URLByAppendingPathComponent(self.id).URLByAppendingPathExtension("jpg")
         
         image.writeToURL(fileURL, atomically: true)
         

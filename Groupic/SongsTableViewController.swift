@@ -302,8 +302,19 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         guard let playlist = playlist else { return }
         if playlist.nowPlaying == nil {
             setNextSongAsNowPlaying(false)
-        } else {
-            MusicController.sharedController.play()
+        } else if let checkSongs = playlist.songs?.array as? [Song] {
+            let checkSongIDs = checkSongs.flatMap({$0.id})
+            let index = checkSongIDs.indexOf(playlist.nowPlaying!)
+            if let index = index, title = checkSongs[Int(index)].title, trackID = checkSongs[Int(index)].trackID {
+                if MusicController.sharedController.controller.nowPlayingItem == nil || MusicController.sharedController.controller.nowPlayingItem?.title != title {
+                    //queue it up and play it
+                    MusicController.sharedController.setQueue([trackID])
+                    MusicController.sharedController.play()
+                } else {
+                    //just play
+                    MusicController.sharedController.play()
+                }
+            }
         }
     }
     
@@ -348,7 +359,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                 }
                 MusicController.sharedController.play()
             }
-        } else if previouslyPlayedSongs.count > 0 {
+        } else {
             if let song = nowPlayingSong {
                 addSongToPreviousPlaylist(song)
             }

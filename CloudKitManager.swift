@@ -14,8 +14,10 @@ import CloudKit
 class CloudKitManager {
     
     enum RecordTypes: String {
-        case post = "Post"
-        case comment = "Comment"
+        case playlist = "Playlist"
+        case song = "Song"
+        case vote = "Vote"
+        case user = "User"
     }
     
     static let sharedManager = CloudKitManager()
@@ -29,7 +31,7 @@ class CloudKitManager {
     
     init() {
         checkCloudKitAvailability()
-        requestDiscoverabilityPermission()
+        //requestDiscoverabilityPermission()
     }
     
     // MARK: - User Info Discovery

@@ -20,10 +20,15 @@ class TempSong {
             let artist = dictionary["artistName"] as? String,
             let trackID = dictionary["trackId"] as? Int,
             let imageString = dictionary["artworkUrl100"] as? String else { return nil }
-        self.artist = artist
-        self.title = title
-        self.trackID = String(trackID)
-        self.imageURL = imageString
+        if dictionary["isStreamable"] as? Bool == true {
+            self.artist = artist
+            self.title = title
+            self.trackID = String(trackID)
+            self.imageURL = imageString
+        } else {
+            return nil
+        }
+
     }
 }
 

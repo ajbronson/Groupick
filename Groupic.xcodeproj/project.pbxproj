@@ -11,6 +11,7 @@
 		213DF85C1D1C874000EFCB3D /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213DF85B1D1C874000EFCB3D /* CloudKitManager.swift */; };
 		213DF85E1D1C874400EFCB3D /* CloudKitManagedObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213DF85D1D1C874400EFCB3D /* CloudKitManagedObject.swift */; };
 		214C79631D2562C100F3069E /* ManageTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 214C79621D2562C100F3069E /* ManageTableViewController.swift */; };
+		217A3DEC1D2EC355002B3A67 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 217A3DEB1D2EC355002B3A67 /* CloudKit.framework */; };
 		217E56E21D18609A00A76A36 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 217E56E01D18609A00A76A36 /* Model.xcdatamodeld */; };
 		217E57151D186B3900A76A36 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E57141D186B3900A76A36 /* Stack.swift */; };
 		217E57221D18926200A76A36 /* Vote+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E571A1D18926200A76A36 /* Vote+CoreDataProperties.swift */; };
@@ -19,6 +20,8 @@
 		21AE80C51D21D09400FAA9E9 /* ImageController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AE80C41D21D09400FAA9E9 /* ImageController.swift */; };
 		21AFB10D1D1C62A3007E0EC5 /* SongController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AFB10C1D1C62A3007E0EC5 /* SongController.swift */; };
 		21AFB10F1D1C62A8007E0EC5 /* PlaylistController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AFB10E1D1C62A8007E0EC5 /* PlaylistController.swift */; };
+		21B37F681D301AFA0033D035 /* User+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B37F661D301AFA0033D035 /* User+CoreDataProperties.swift */; };
+		21B37F691D301AFA0033D035 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B37F671D301AFA0033D035 /* User.swift */; };
 		21C6E4BA1D145DA0001F6F54 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C6E4B91D145DA0001F6F54 /* AppDelegate.swift */; };
 		21C6E4BF1D145DA0001F6F54 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 21C6E4BD1D145DA0001F6F54 /* Main.storyboard */; };
 		21C6E4C11D145DA0001F6F54 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21C6E4C01D145DA0001F6F54 /* Assets.xcassets */; };
@@ -34,8 +37,6 @@
 		21C6E4DC1D1464E0001F6F54 /* SongTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C6E4DB1D1464E0001F6F54 /* SongTableViewCell.swift */; };
 		21C6E4DE1D1464F2001F6F54 /* AddSongTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C6E4DD1D1464F2001F6F54 /* AddSongTableViewCell.swift */; };
 		21C6E4E01D1464FA001F6F54 /* JoinPlaylistTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C6E4DF1D1464FA001F6F54 /* JoinPlaylistTableViewCell.swift */; };
-		21E7D5541D2810CE0093C28C /* User+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E7D54E1D2810CE0093C28C /* User+CoreDataProperties.swift */; };
-		21E7D5551D2810CE0093C28C /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E7D54F1D2810CE0093C28C /* User.swift */; };
 		21E7D5561D2810CE0093C28C /* Playlist+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E7D5501D2810CE0093C28C /* Playlist+CoreDataProperties.swift */; };
 		21E7D5571D2810CE0093C28C /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E7D5511D2810CE0093C28C /* Playlist.swift */; };
 		21E7D5581D2810CE0093C28C /* Song+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E7D5521D2810CE0093C28C /* Song+CoreDataProperties.swift */; };
@@ -50,6 +51,8 @@
 		213DF85B1D1C874000EFCB3D /* CloudKitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 		213DF85D1D1C874400EFCB3D /* CloudKitManagedObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudKitManagedObject.swift; sourceTree = "<group>"; };
 		214C79621D2562C100F3069E /* ManageTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ManageTableViewController.swift; sourceTree = "<group>"; };
+		217A3DEA1D2EC350002B3A67 /* Groupic.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Groupic.entitlements; sourceTree = "<group>"; };
+		217A3DEB1D2EC355002B3A67 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		217E56E11D18609A00A76A36 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		217E57141D186B3900A76A36 /* Stack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stack.swift; sourceTree = "<group>"; };
 		217E571A1D18926200A76A36 /* Vote+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vote+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -58,6 +61,8 @@
 		21AE80C41D21D09400FAA9E9 /* ImageController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageController.swift; sourceTree = "<group>"; };
 		21AFB10C1D1C62A3007E0EC5 /* SongController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongController.swift; sourceTree = "<group>"; };
 		21AFB10E1D1C62A8007E0EC5 /* PlaylistController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaylistController.swift; sourceTree = "<group>"; };
+		21B37F661D301AFA0033D035 /* User+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "User+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		21B37F671D301AFA0033D035 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		21C6E4B61D145DA0001F6F54 /* Groupic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Groupic.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		21C6E4B91D145DA0001F6F54 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		21C6E4BE1D145DA0001F6F54 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -75,8 +80,6 @@
 		21C6E4DB1D1464E0001F6F54 /* SongTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongTableViewCell.swift; sourceTree = "<group>"; };
 		21C6E4DD1D1464F2001F6F54 /* AddSongTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddSongTableViewCell.swift; sourceTree = "<group>"; };
 		21C6E4DF1D1464FA001F6F54 /* JoinPlaylistTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JoinPlaylistTableViewCell.swift; sourceTree = "<group>"; };
-		21E7D54E1D2810CE0093C28C /* User+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "User+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		21E7D54F1D2810CE0093C28C /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		21E7D5501D2810CE0093C28C /* Playlist+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Playlist+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		21E7D5511D2810CE0093C28C /* Playlist.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
 		21E7D5521D2810CE0093C28C /* Song+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Song+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -91,6 +94,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				217A3DEC1D2EC355002B3A67 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,8 +127,8 @@
 			children = (
 				217E57141D186B3900A76A36 /* Stack.swift */,
 				217E56E01D18609A00A76A36 /* Model.xcdatamodeld */,
-				21E7D54E1D2810CE0093C28C /* User+CoreDataProperties.swift */,
-				21E7D54F1D2810CE0093C28C /* User.swift */,
+				21B37F661D301AFA0033D035 /* User+CoreDataProperties.swift */,
+				21B37F671D301AFA0033D035 /* User.swift */,
 				21E7D5501D2810CE0093C28C /* Playlist+CoreDataProperties.swift */,
 				21E7D5511D2810CE0093C28C /* Playlist.swift */,
 				21E7D5521D2810CE0093C28C /* Song+CoreDataProperties.swift */,
@@ -152,6 +156,7 @@
 		21C6E4AD1D145DA0001F6F54 = {
 			isa = PBXGroup;
 			children = (
+				217A3DEB1D2EC355002B3A67 /* CloudKit.framework */,
 				21C6E4B81D145DA0001F6F54 /* Groupic */,
 				21C6E4B71D145DA0001F6F54 /* Products */,
 			);
@@ -168,6 +173,7 @@
 		21C6E4B81D145DA0001F6F54 /* Groupic */ = {
 			isa = PBXGroup;
 			children = (
+				217A3DEA1D2EC350002B3A67 /* Groupic.entitlements */,
 				21C6E4B91D145DA0001F6F54 /* AppDelegate.swift */,
 				21C6E4BD1D145DA0001F6F54 /* Main.storyboard */,
 				213DF8601D1C888D00EFCB3D /* Protocol */,
@@ -258,6 +264,11 @@
 					21C6E4B51D145DA0001F6F54 = {
 						CreatedOnToolsVersion = 7.3.1;
 						DevelopmentTeam = D8BVW7B3PF;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -315,12 +326,11 @@
 				217E57221D18926200A76A36 /* Vote+CoreDataProperties.swift in Sources */,
 				21C6E4D01D1464A1001F6F54 /* SearchPlaylistResultsTableViewController.swift in Sources */,
 				21C6E4D61D1464C0001F6F54 /* SearchSongResultsTableViewController.swift in Sources */,
+				21B37F681D301AFA0033D035 /* User+CoreDataProperties.swift in Sources */,
 				21C6E4D21D1464AE001F6F54 /* SongsTableViewController.swift in Sources */,
-				21E7D5541D2810CE0093C28C /* User+CoreDataProperties.swift in Sources */,
 				21E7D5581D2810CE0093C28C /* Song+CoreDataProperties.swift in Sources */,
 				21C6E4CC1D146487001F6F54 /* PlaylistTableViewController.swift in Sources */,
 				217E57291D18AF9B00A76A36 /* NetworkController.swift in Sources */,
-				21E7D5551D2810CE0093C28C /* User.swift in Sources */,
 				213DF8561D1C779400EFCB3D /* UserController.swift in Sources */,
 				21AFB10D1D1C62A3007E0EC5 /* SongController.swift in Sources */,
 				217E57151D186B3900A76A36 /* Stack.swift in Sources */,
@@ -330,6 +340,7 @@
 				21C6E4DA1D1464DB001F6F54 /* PlaylistTableViewCell.swift in Sources */,
 				213DF85C1D1C874000EFCB3D /* CloudKitManager.swift in Sources */,
 				21E7D5571D2810CE0093C28C /* Playlist.swift in Sources */,
+				21B37F691D301AFA0033D035 /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -442,6 +453,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Groupic/Groupic.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Groupic/Info.plist;
@@ -456,6 +468,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Groupic/Groupic.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Groupic/Info.plist;

@@ -11,7 +11,7 @@ import CloudKit
 
 @objc protocol CloudKitManagedObject {
     
-    var id: String? { get set }
+    var id: String { get set }
     var recordType: String { get }
     var cloudKitRecord: CKRecord? { get }
     var changeToken: String? { get set }
@@ -27,11 +27,10 @@ extension CloudKitManagedObject {
         PlaylistController.sharedController.save() //TODO: Thinka bout where best to put this..
     }
     
-//    var cloudKitRecordID: CKRecordID? {
-//        guard let recordIDData = recordIDData else { return nil }
-//        return NSKeyedUnarchiver.unarchiveObjectWithData(recordIDData) as? CKRecordID
-//    }
-//    
+    var cloudKitRecordID: CKRecordID {
+        return CKRecordID(recordName: id)
+    }
+//
 //    var cloudKitReference: CKReference? {
 //        guard let recordID = self.cloudKitRecordID else { return nil }
 //        return CKReference(recordID: recordID, action: .None)
