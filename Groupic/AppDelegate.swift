@@ -56,18 +56,51 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let notificationInfo = userInfo as? [String: NSObject] else { return }
         let notification = CKQueryNotification(fromRemoteNotificationDictionary: notificationInfo)
         
-        if let recordID = notification.recordID {
+        if let subID = notification.subscriptionID where subID.containsString("Delete_Playlist_") {
+            let subscriptionID = subID.substringFromIndex(subID.startIndex.advancedBy(16))
+            if let playlist = PlaylistController.sharedController.playlistWithID(subscriptionID) {
+                if let root = UIApplication.topViewController() as? SongsTableViewController {
+                    if root.playlist?.id == subscriptionID {
+                      root.navigationController?.popViewControllerAnimated(true)
+                    }
+                } else if let root = UIApplication.topViewController() as? SearchSongTableViewController {
+                    if root.playlist?.id == subscriptionID {
+                        root.navigationController?.popViewControllerAnimated(true)?.navigationController?.popViewControllerAnimated(true)
+                    }
+                } else if let root = UIApplication.topViewController() as? UISearchController, let rootView = root.searchResultsController as? SearchSongResultsTableViewController {
+                    if rootView.playlist?.id == subscriptionID {
+                        root.dismissViewControllerAnimated(true, completion: {
+                            if let newRoot = UIApplication.topViewController() as? SearchSongTableViewController {
+                                newRoot.navigationController?.popViewControllerAnimated(true)?.navigationController?.popViewControllerAnimated(true)
+                            }
+                        })
+                    }
+                }
+                PlaylistController.sharedController.deletePlaylist(playlist)
+            }
+        } else if let recordID = notification.recordID {
             CloudKitManager.sharedManager.fetchRecordWithID(recordID, completion: { (record, error) in
                 if let record = record {
                     let song = Song(record: record)
-                    let _ = Vote(record: record)
+                    let vote = Vote(record: record)
                     PlaylistController.sharedController.save()
                     if let song = song {
+                        if let root = UIApplication.topViewController() as? SongsTableViewController {
+                            if root.playlist?.id == song.playlist.id {
+                                root.addCKSong(song)
+                            }
+                        }
                         SongController.sharedController.addSubscriptionToSongVotes(song, completion: { (success, error) in
                             if let error = error {
                                 print("error subscribing to vote - \(error.localizedDescription)")
                             }
                         })
+                    } else if let vote = vote {
+                        if let root = UIApplication.topViewController() as? SongsTableViewController {
+                            if root.playlist?.id == vote.song.playlist.id {
+                                root.addCKVote(vote)
+                            }
+                        }
                     }
                 }
             })
@@ -76,6 +109,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         completionHandler(UIBackgroundFetchResult.NewData)
     }
     
-    
+}
+
+extension UIApplication {
+    class func topViewController(base: UIViewController? = UIApplication.sharedApplication().keyWindow?.rootViewController) -> UIViewController? {
+        
+        if let nav = base as? UINavigationController {
+            return topViewController(nav.visibleViewController)
+        }
+        
+        if let tab = base as? UITabBarController {
+            let moreNavigationController = tab.moreNavigationController
+            
+            if let top = moreNavigationController.topViewController where top.view.window != nil {
+                return topViewController(top)
+            } else if let selected = tab.selectedViewController {
+                return topViewController(selected)
+            }
+        }
+        
+        if let presented = base?.presentedViewController {
+            return topViewController(presented)
+        }
+        
+        return base
+    }
 }
 

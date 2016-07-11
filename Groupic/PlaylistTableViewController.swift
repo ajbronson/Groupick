@@ -20,6 +20,7 @@ class PlaylistTableViewController: UITableViewController, NSFetchedResultsContro
 
         PlaylistController.sharedController.fetchedResultsController.delegate = self
         self.navigationController?.toolbarHidden = true
+        
     }
 
     // MARK: - Table view data source

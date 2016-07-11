@@ -61,7 +61,53 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         tableView.reloadData()
     }
     
+    func addCKSong(song: Song) {
+        songs?.append(song)
+        if let votes = song.votes?.array as? [Vote] {
+            let count = votes.flatMap({Int($0.vote!)}).reduce(0, combine: +)
+            var added = false
+            for i in 0..<songOrder.count {
+                if count > songOrder[i].0 || (count >= songOrder[i].0 && song.dateCreated.isLessThanDate(songOrder[i].1.dateCreated)) {
+                    added = true
+                    songOrder.insert((count, song), atIndex: i)
+                    insertCKSongAt(i)
+                }
+            }
+            if !added {
+                songOrder.append((count, song))
+                insertCKSongAt(songOrder.count - 1)
+            }
+        }
+    }
     
+    func insertCKSongAt(location: Int) {
+        var index: NSIndexPath
+        if playlist?.nowPlaying != nil {
+            index = NSIndexPath(forRow: location, inSection: 1)
+        } else {
+            index = NSIndexPath(forRow: location, inSection: 0)
+        }
+        tableView.insertRowsAtIndexPaths([index], withRowAnimation: .Right)
+    }
+    
+    func addCKVote(vote: Vote) {
+        var section: Int
+        if playlist?.nowPlaying != nil {
+            section = 1
+        } else {
+            section = 0
+        }
+        
+        for i in 0..<tableView.numberOfRowsInSection(section) {
+            let index = NSIndexPath(forRow: i, inSection: section)
+            if let cell = tableView.cellForRowAtIndexPath(index) as? SongTableViewCell {
+                if cell.song?.id == vote.song.id {
+                    reloadCellVotes(cell, song: vote.song, numberOfVotes: Int(vote.vote!))
+                }
+            }
+        }
+    }
+
     
     // MARK: - Table view data source
     
@@ -358,6 +404,9 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                 }
                 if next {
                     MusicController.sharedController.nextSong()
+                    if MusicController.sharedController.controller.nowPlayingItem == nil {
+                        MusicController.sharedController.play()
+                    }
                 }
                 MusicController.sharedController.play()
             }

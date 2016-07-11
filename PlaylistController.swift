@@ -75,6 +75,7 @@ class PlaylistController {
                             }
                         }
                         for song in songs {
+                            //TODO: need to subscribe to these songs deletions, and their votes
                             if let songCKRecord = song.cloudKitRecord {
                                 let predicate = NSPredicate(format: "song == %@", argumentArray: [songCKRecord.recordID])
                                 CloudKitManager.sharedManager.fetchRecordsWithType("Vote", predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
@@ -89,7 +90,17 @@ class PlaylistController {
                         }
                     }
                     self.createUserPlaylistCKRecord(newPlaylist)
+                    self.subscribeToPlaylistDeletion(newPlaylist)
                 })
+            }
+        }
+    }
+    
+    func subscribeToPlaylistDeletion(playlist: Playlist) {
+        let predicate = NSPredicate(format: "id == %@", argumentArray: [playlist.cloudKitRecordID.recordName])
+        CloudKitManager.sharedManager.subscribe("Playlist", predicate: predicate, identifier: "Delete_Playlist_\(playlist.cloudKitRecordID.recordName)", contentAvailable: true, options: .FiresOnRecordDeletion) { (subscription, error) in
+            if let error = error {
+                print("Error saving Playlist Deletion Subscription - \(error.localizedDescription)")
             }
         }
     }

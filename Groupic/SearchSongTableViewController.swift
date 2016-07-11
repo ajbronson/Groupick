@@ -31,6 +31,9 @@ class SearchSongTableViewController: UITableViewController, UISearchResultsUpdat
         searchController.searchBar.delegate = self
         searchController.searchBar.scopeButtonTitles = ["Song", "Artist"]
         searchController.searchBar.setValue("Done", forKey: "_cancelButtonText")
+        if let resultVC = searchController.searchResultsController as? SearchSongResultsTableViewController {
+            resultVC.playlist = playlist
+        }
         
     }
     
@@ -42,7 +45,6 @@ class SearchSongTableViewController: UITableViewController, UISearchResultsUpdat
     func updateSearchResultsForSearchController(searchController: UISearchController) {
         guard let text = searchController.searchBar.text?.lowercaseString,
             let resultsViewController = searchController.searchResultsController as? SearchSongResultsTableViewController  where text.characters.count > 0 else { return }
-        resultsViewController.playlist = playlist
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         var type: SongController.searchType
         if searchController.searchBar.selectedScopeButtonIndex == 0 {

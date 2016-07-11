@@ -305,10 +305,11 @@ class CloudKitManager {
                 completion(subscriptions: subscriptionArray, error: error)
             }
         }
-        
-        //        publicDatabase.fetchAllSubscriptionsWithCompletionHandler { (subscriptions, error) in
-        //            <#code#>
-        //        }
+        if let completion = completion {
+            publicDatabase.fetchAllSubscriptionsWithCompletionHandler { (subscriptions, error) in
+                completion(subscriptions: subscriptions, error: error)
+            }
+        }
     }
     
     // MARK: - CloudKit Availability

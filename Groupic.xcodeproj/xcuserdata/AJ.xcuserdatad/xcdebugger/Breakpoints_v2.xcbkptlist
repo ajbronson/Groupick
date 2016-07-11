@@ -10,43 +10,91 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "PlaylistController.swift"
-            timestampString = "489895033.715107"
+            timestampString = "489972773.004714"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "61"
-            endingLineNumber = "61"
-            landmarkName = "joinPlaylist(_:)"
+            startingLineNumber = "175"
+            endingLineNumber = "175"
+            landmarkName = "addSubscriptionToPlaylistSongs(_:completion:)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SongController.swift"
+            timestampString = "489972816.688693"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "115"
+            endingLineNumber = "115"
+            landmarkName = "addSubscriptionToSongVotes(_:completion:)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitManager.swift"
+            timestampString = "489974169.455562"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "286"
+            endingLineNumber = "286"
+            landmarkName = "unsubscribe(_:completion:)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitManager.swift"
+            timestampString = "489974170.777129"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "288"
+            endingLineNumber = "288"
+            landmarkName = "unsubscribe(_:completion:)"
             landmarkType = "5">
             <Locations>
                <Location
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "Groupic.PlaylistController.(joinPlaylist (Groupic.TempPlaylist) -&gt; ()).(closure #1)"
+                  symbolName = "Groupic.CloudKitManager.(unsubscribe (__ObjC.CKSubscription, completion : Swift.Optional&lt;(subscriptionID : Swift.Optional&lt;Swift.String&gt;, error : Swift.Optional&lt;__ObjC.NSError&gt;) -&gt; ()&gt;) -&gt; ()).(closure #1)"
                   moduleName = "Groupic"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/AJ/Documents/DevMountain/Week%206/Groupic/PlaylistController.swift"
-                  timestampString = "489895033.726824"
+                  urlString = "file:///Users/AJ/Documents/DevMountain/Week%206/Groupic/CloudKitManager.swift"
+                  timestampString = "489974249.645475"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61"
-                  offsetFromSymbolStart = "24">
+                  startingLineNumber = "288"
+                  endingLineNumber = "288"
+                  offsetFromSymbolStart = "36">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "Groupic.PlaylistController.(joinPlaylist (Groupic.TempPlaylist) -&gt; ()).(closure #1)"
+                  symbolName = "Groupic.CloudKitManager.(unsubscribe (__ObjC.CKSubscription, completion : Swift.Optional&lt;(subscriptionID : Swift.Optional&lt;Swift.String&gt;, error : Swift.Optional&lt;__ObjC.NSError&gt;) -&gt; ()&gt;) -&gt; ()).(closure #1)"
                   moduleName = "Groupic"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/AJ/Documents/DevMountain/Week%206/Groupic/PlaylistController.swift"
-                  timestampString = "489895033.72697"
+                  urlString = "file:///Users/AJ/Documents/DevMountain/Week%206/Groupic/CloudKitManager.swift"
+                  timestampString = "489974249.645563"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61"
-                  offsetFromSymbolStart = "60">
+                  startingLineNumber = "288"
+                  endingLineNumber = "288"
+                  offsetFromSymbolStart = "92">
                </Location>
             </Locations>
          </BreakpointContent>

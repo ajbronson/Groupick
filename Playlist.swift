@@ -61,6 +61,7 @@ class Playlist: NSManagedObject, CloudKitManagedObject {
         record[kName] = name
         record[kPasscode] = passcode
         record[kIsPublic] = isPublic
+        record[kID] = id
         record[kNowPlaying] = nowPlaying
         guard let userRecordID = creator.cloudKitRecord  else { fatalError("Playlist does not have a Creator relationship") }
         record[kCreator] = CKReference(record: userRecordID, action: .DeleteSelf)
