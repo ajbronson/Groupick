@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import CloudKit
 
 class PlaylistController {
     
@@ -25,7 +26,6 @@ class PlaylistController {
         request.sortDescriptors = [sortDescriptor1]
         fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
         _ = try? fetchedResultsController.performFetch()
-        //fullSync()
     }
     
     func createPlaylist(name: String, isPublic: Bool, passcode: String?) {
@@ -34,10 +34,14 @@ class PlaylistController {
             save()
             
             if let playlist = playlist, playlistRecord = playlist.cloudKitRecord {
+                
                 CloudKitManager.sharedManager.saveRecord(playlistRecord, completion: { (record, error) in
                     if let record = record {
                         playlist.update(record)
+                    } else if let error = error {
+                        print("Error saving New Playlist - \(error.localizedDescription)")
                     }
+                    self.createUserPlaylistCKRecord(playlist)
                 })
                 addSubscriptionToPlaylistSongs(playlist, completion: { (success, error) in
                     if let error = error {
@@ -50,9 +54,7 @@ class PlaylistController {
     
     func joinPlaylist(playlist: TempPlaylist) {
         let newPlaylist = Playlist(record: playlist.ckRecord)
-
         
-        //TODO: Join followers, save to cloud
         save()
         if let newPlaylist = newPlaylist {
             addSubscriptionToPlaylistSongs(newPlaylist, completion: { (success, error) in
@@ -61,7 +63,7 @@ class PlaylistController {
                 }
             })
             if let ckRecord = newPlaylist.cloudKitRecord {
-                let predicate = NSPredicate(format: "playlist == %@", argumentArray: [ckRecord.recordID.recordName])
+                let predicate = NSPredicate(format: "playlist == %@", argumentArray: [ckRecord.recordID])
                 CloudKitManager.sharedManager.fetchRecordsWithType("Song", predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
                     if let records = records {
                         var songs = [Song]()
@@ -74,7 +76,7 @@ class PlaylistController {
                         }
                         for song in songs {
                             if let songCKRecord = song.cloudKitRecord {
-                                let predicate = NSPredicate(format: "song == %@", argumentArray: [songCKRecord.recordID.recordName])
+                                let predicate = NSPredicate(format: "song == %@", argumentArray: [songCKRecord.recordID])
                                 CloudKitManager.sharedManager.fetchRecordsWithType("Vote", predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
                                     if let records = records {
                                         for record in records {
@@ -86,8 +88,26 @@ class PlaylistController {
                             }
                         }
                     }
+                    self.createUserPlaylistCKRecord(newPlaylist)
                 })
             }
+        }
+    }
+    
+    func createUserPlaylistCKRecord(playlist: Playlist) {
+        if let userCKRID = UserController.getUser()?.cloudKitRecordID {
+            let id = NSUUID().UUIDString
+            let recordID = CKRecordID(recordName: id)
+            let record = CKRecord(recordType: "UserPlaylist", recordID: recordID)
+            let playlistReference = CKReference(recordID: playlist.cloudKitRecordID, action: .DeleteSelf)
+            let userReference = CKReference(recordID: userCKRID, action: .DeleteSelf)
+            record["playlist"] = playlistReference
+            record["user"] = userReference
+            CloudKitManager.sharedManager.saveRecord(record, completion: { (record, error) in
+                if let error = error {
+                    print("error saving user playlist object to CloudKit - \(error.localizedDescription)")
+                }
+            })
         }
     }
     
@@ -123,6 +143,14 @@ class PlaylistController {
         save()
     }
     
+    func playlistWithID(id: String) -> Playlist? {
+        let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
+        let request = NSFetchRequest(entityName: "Playlist")
+        request.predicate = predicate
+        let result = (try? Stack.sharedStack.managedObjectContext.executeFetchRequest(request) as? [Playlist]) ?? nil
+        return result?.first
+    }
+    
     
     func save() {
         do {
@@ -132,65 +160,10 @@ class PlaylistController {
         }
     }
     
-    /*
-     func fullSync() {
-     fetchNewRecords("Playlist") {
-     self.fetchNewRecords("Songs", completion: nil)
-     }
-     }
-     
-     
-     func fetchNewRecords(type: String, completion: (() -> Void)?) {
-     
-     let referencesToExclude = syncedRecords(type).flatMap({$0.cloudKitReference})
-     var predicate = NSPredicate(format: "NOT (recordID IN %@)", argumentArray: [referencesToExclude])
-     
-     if referencesToExclude.isEmpty {
-     predicate = NSPredicate(value: true)
-     }
-     
-     CloudKitManager.sharedManager.fetchRecordsWithType(type, predicate: predicate, recordFetchedBlock: { (record) in
-     
-     if type == "Playlist" {
-     _ = Playlist(record: record)
-     self.save()
-     } else if type == "Song" {
-     _ = Song(record: record)
-     self.save()
-     }
-     }) { (records, error) in
-     if error != nil {
-     print("Oh no!")
-     }
-     
-     if let completion = completion {
-     completion()
-     }
-     }
-     }
-     */
-    
-    func syncedRecords(type: String) -> [CloudKitManagedObject] {
-        let fetchRequest = NSFetchRequest(entityName: type)
-        let predicate = NSPredicate(format: "changeToken != nil")
-        fetchRequest.predicate = predicate
-        let response = (try? Stack.sharedStack.managedObjectContext.executeFetchRequest(fetchRequest)) as? [CloudKitManagedObject] ?? []
-        return response
-    }
-    
-    func unsyncedRecords(type: String) -> [CloudKitManagedObject] {
-        let fetchRequest = NSFetchRequest(entityName: type)
-        let predicate = NSPredicate(format: "changeToken == nil")
-        fetchRequest.predicate = predicate
-        let response = (try? Stack.sharedStack.managedObjectContext.executeFetchRequest(fetchRequest)) as? [CloudKitManagedObject] ?? []
-        return response
-    }
-    
     func addSubscriptionToPlaylistSongs(playlist: Playlist, completion: ((success: Bool, error: NSError?) -> Void)?) {
-        
         let predicate = NSPredicate(format: "playlist == %@", argumentArray: [playlist.cloudKitRecordID])
         
-        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.song.rawValue, predicate: predicate, identifier: playlist.cloudKitRecordID.recordName, alertBody: "Playlist Received A New Song! 😎", contentAvailable: true, desiredKeys: ["dateCreated", "title", "artist", "trackID", "playlist"], options: .FiresOnRecordCreation) { (subscription, error) in
+        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.song.rawValue, predicate: predicate, identifier: playlist.cloudKitRecordID.recordName, alertBody: "Playlist Received A New Song! 😎", contentAvailable: true, desiredKeys: nil, options: .FiresOnRecordCreation) { (subscription, error) in
             if let completion = completion {
                 let success = subscription != nil
                 completion(success: success, error: error)
@@ -199,6 +172,5 @@ class PlaylistController {
     }
 }
 
-//["dateCreated", "title", "artist", "trackID", "previouslyPlayed", "addedBy", "image"]
 
 

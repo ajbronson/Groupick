@@ -2,4 +2,54 @@
 <Bucket
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "PlaylistController.swift"
+            timestampString = "489895033.715107"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "61"
+            endingLineNumber = "61"
+            landmarkName = "joinPlaylist(_:)"
+            landmarkType = "5">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Groupic.PlaylistController.(joinPlaylist (Groupic.TempPlaylist) -&gt; ()).(closure #1)"
+                  moduleName = "Groupic"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/AJ/Documents/DevMountain/Week%206/Groupic/PlaylistController.swift"
+                  timestampString = "489895033.726824"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "61"
+                  endingLineNumber = "61"
+                  offsetFromSymbolStart = "24">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Groupic.PlaylistController.(joinPlaylist (Groupic.TempPlaylist) -&gt; ()).(closure #1)"
+                  moduleName = "Groupic"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/AJ/Documents/DevMountain/Week%206/Groupic/PlaylistController.swift"
+                  timestampString = "489895033.72697"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "61"
+                  endingLineNumber = "61"
+                  offsetFromSymbolStart = "60">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

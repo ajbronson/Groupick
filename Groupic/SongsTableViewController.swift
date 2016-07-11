@@ -28,6 +28,8 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         previouslyPlayedSongs = [Song]()
         if playlist?.creator.id == UserController.getUserID() {
             self.navigationController?.toolbarHidden = false
+        } else {
+            self.navigationController?.toolbarHidden = true
         }
         if let songs = playlist?.songs?.array as? [Song] {
             
@@ -42,7 +44,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                         var didAdd = false
                         for i in 0..<songOrder.count {
                             let vote = songOrder[i].0
-                            if count > vote {
+                            if count > vote || (count >= vote && song.dateCreated.isLessThanDate(songOrder[i].1.dateCreated)) {
                                 songOrder.insert((count, song), atIndex: i)
                                 didAdd = true
                                 break

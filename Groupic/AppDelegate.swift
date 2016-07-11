@@ -18,6 +18,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        UIApplication.sharedApplication().registerForRemoteNotifications()
+        
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
         } catch {
@@ -54,12 +56,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let notificationInfo = userInfo as? [String: NSObject] else { return }
         let notification = CKQueryNotification(fromRemoteNotificationDictionary: notificationInfo)
         
-        
         if let recordID = notification.recordID {
             CloudKitManager.sharedManager.fetchRecordWithID(recordID, completion: { (record, error) in
                 if let record = record {
-                    let _ = Song(record: record)
+                    let song = Song(record: record)
+                    let _ = Vote(record: record)
                     PlaylistController.sharedController.save()
+                    if let song = song {
+                        SongController.sharedController.addSubscriptionToSongVotes(song, completion: { (success, error) in
+                            if let error = error {
+                                print("error subscribing to vote - \(error.localizedDescription)")
+                            }
+                        })
+                    }
                 }
             })
         }

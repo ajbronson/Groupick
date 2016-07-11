@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CloudKit
 
 class SearchPlaylistTableViewController: UITableViewController, UISearchResultsUpdating, UISearchBarDelegate, dismissProtocol {
 
@@ -47,19 +48,22 @@ class SearchPlaylistTableViewController: UITableViewController, UISearchResultsU
     }
     
     func searchCloudKit(searchText: String, completion: ([TempPlaylist]) -> Void) {
-        let predicate = NSPredicate(format: "self contains %@", argumentArray: [searchText])
-        var arrayPlaylist = [TempPlaylist]()
-        CloudKitManager.sharedManager.fetchRecordsWithType("Playlist", predicate: predicate, recordFetchedBlock: nil) { (records, error) in
-            if let records = records {
-                for record in records {
-                    let tempPlaylist = TempPlaylist(record: record)
-                    if let tempPlaylist = tempPlaylist {
-                        arrayPlaylist.append(tempPlaylist)
+        if let userRecord = UserController.getUser()?.cloudKitRecord {
+            let creatorReference = CKReference(record: userRecord, action: .None)
+            let predicate = NSPredicate(format: "creator != %@ && self contains %@", argumentArray: [creatorReference, searchText])
+            var arrayPlaylist = [TempPlaylist]()
+            CloudKitManager.sharedManager.fetchRecordsWithType("Playlist", predicate: predicate, recordFetchedBlock: nil) { (records, error) in
+                if let records = records {
+                    for record in records {
+                        let tempPlaylist = TempPlaylist(record: record)
+                        if let tempPlaylist = tempPlaylist {
+                            arrayPlaylist.append(tempPlaylist)
+                        }
                     }
                 }
+                completion(arrayPlaylist)
+                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
             }
-            completion(arrayPlaylist)
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         }
     }
 

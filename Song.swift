@@ -36,20 +36,22 @@ class Song: NSManagedObject, CloudKitManagedObject {
         self.playlist = playlist
         self.image = image
         self.trackID = trackID
+        self.previouslyPlayed = false
+        self.addedBy = UserController.getUser()
     }
     
     
     convenience init?(record: CKRecord, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
-        guard let entity = NSEntityDescription.entityForName("Playlist", inManagedObjectContext: context) else { fatalError("Error: Core Data failed to create entity from entity description.") }
+        guard let entity = NSEntityDescription.entityForName("Song", inManagedObjectContext: context) else { fatalError("Error: Core Data failed to create entity from entity description.") }
         self.init(entity: entity, insertIntoManagedObjectContext: context)
         
         guard let timestamp = record.creationDate,
             let title = record[kTitle] as? String,
             let artist = record[kArtist] as? String,
             let trackID = record[kTrackID] as? String,
-            let image = record[kImage] as? NSData,
             let previouslyPlayed = record[kPreviouslyPlayed] as? Bool,
-            let playlist = record[kPlaylist] as? Playlist else { return nil }
+            let playlistReference = record[kPlaylist] as? CKReference,
+            let addedByReference = record[kAddedBy] as? CKReference else { return nil }
         
         self.dateCreated = timestamp
         self.title = title
@@ -57,9 +59,15 @@ class Song: NSManagedObject, CloudKitManagedObject {
         self.changeToken = record.recordChangeTag
         self.artist = artist
         self.trackID = trackID
-        self.playlist = playlist
+        if let playlist = PlaylistController.sharedController.playlistWithID(playlistReference.recordID.recordName) {
+            self.playlist = playlist
+        }
         self.previouslyPlayed = previouslyPlayed
-        self.image = image
+        if let imageURL = record[kImage] as? CKAsset {
+           self.image = NSData(contentsOfURL: imageURL.fileURL)
+        }
+        self.changeToken = record.recordChangeTag
+        
         //TODO: added by needs to be done here
     }
     

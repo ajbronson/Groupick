@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreData
 
 class SongController {
     
@@ -27,12 +28,26 @@ class SongController {
                 }
             })
         }
+        addSubscriptionToSongVotes(song, completion: { (success, error) in
+            if let error = error {
+                print("error subscribing to vote - \(error.localizedDescription)")
+            }
+        })
     }
     
     func deleteSong(song: Song) {
         song.managedObjectContext?.deleteObject(song)
+        if let songRecord = song.cloudKitRecord {
+            CloudKitManager.sharedManager.deleteRecordWithID(songRecord.recordID, completion: { (recordID, error) in
+                if let error = error {
+                    print("Error deleting Song - \(error.localizedDescription)")
+                }
+            })
+        }
         PlaylistController.sharedController.save()
+        
     }
+    
     
     func togglePlayed(song: Song) {
         if let played = song.previouslyPlayed?.boolValue {
@@ -41,6 +56,14 @@ class SongController {
             song.previouslyPlayed = true
         }
         PlaylistController.sharedController.save()
+    }
+    
+    func songWithID(id: String) -> Song? {
+        let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
+        let request = NSFetchRequest(entityName: "Song")
+        request.predicate = predicate
+        let result = (try? Stack.sharedStack.managedObjectContext.executeFetchRequest(request) as? [Song]) ?? nil
+        return result?.first
     }
     
     func addVoteToSong(song: Song, vote: Int) {
@@ -85,6 +108,17 @@ class SongController {
                     print("error deleting vote - \(error.localizedDescription)")
                 }
             })
+        }
+    }
+    
+    func addSubscriptionToSongVotes(song: Song, completion: ((success: Bool, error: NSError?) -> Void)?) {
+        let predicate = NSPredicate(format: "song == %@", argumentArray: [song.cloudKitRecordID])
+        
+        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.vote.rawValue, predicate: predicate, identifier: song.cloudKitRecordID.recordName, alertBody: "Song Received A New Vote! 😎", contentAvailable: true, desiredKeys: nil, options: .FiresOnRecordCreation) { (subscription, error) in
+            if let completion = completion {
+                let success = subscription != nil
+                completion(success: success, error: error)
+            }
         }
     }
     

@@ -24,15 +24,10 @@ extension CloudKitManagedObject {
     func update(record: CKRecord) {
         guard let changeTag = record.recordChangeTag else { return }
         self.changeToken = String(NSKeyedArchiver.archivedDataWithRootObject(changeTag))
-        PlaylistController.sharedController.save() //TODO: Thinka bout where best to put this..
+        PlaylistController.sharedController.save()
     }
     
     var cloudKitRecordID: CKRecordID {
         return CKRecordID(recordName: id)
     }
-//
-//    var cloudKitReference: CKReference? {
-//        guard let recordID = self.cloudKitRecordID else { return nil }
-//        return CKReference(recordID: recordID, action: .None)
-//    }
 }
