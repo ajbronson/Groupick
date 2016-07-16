@@ -42,6 +42,7 @@
         <attribute name="changeToken" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="dateCreated" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="playlistRecordName" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="vote" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="creator" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="votes" inverseEntity="User" syncable="YES"/>
         <relationship name="song" maxCount="1" deletionRule="Nullify" destinationEntity="Song" inverseName="votes" inverseEntity="Song" syncable="YES"/>
@@ -50,6 +51,6 @@
         <element name="Playlist" positionX="-486" positionY="-217" width="128" height="193"/>
         <element name="Song" positionX="-731" positionY="-189" width="128" height="223"/>
         <element name="User" positionX="-0" positionY="-162" width="128" height="193"/>
-        <element name="Vote" positionX="-470" positionY="-18" width="128" height="133"/>
+        <element name="Vote" positionX="-470" positionY="-18" width="128" height="150"/>
     </elements>
 </model>

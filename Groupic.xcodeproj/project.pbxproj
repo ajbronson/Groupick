@@ -14,9 +14,9 @@
 		217A3DEC1D2EC355002B3A67 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 217A3DEB1D2EC355002B3A67 /* CloudKit.framework */; };
 		217E56E21D18609A00A76A36 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 217E56E01D18609A00A76A36 /* Model.xcdatamodeld */; };
 		217E57151D186B3900A76A36 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E57141D186B3900A76A36 /* Stack.swift */; };
-		217E57221D18926200A76A36 /* Vote+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E571A1D18926200A76A36 /* Vote+CoreDataProperties.swift */; };
-		217E57231D18926200A76A36 /* Vote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E571B1D18926200A76A36 /* Vote.swift */; };
 		217E57291D18AF9B00A76A36 /* NetworkController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E57281D18AF9B00A76A36 /* NetworkController.swift */; };
+		21A864BE1D3494330066CF12 /* Vote+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21A864BC1D3494330066CF12 /* Vote+CoreDataProperties.swift */; };
+		21A864BF1D3494330066CF12 /* Vote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21A864BD1D3494330066CF12 /* Vote.swift */; };
 		21AE80C51D21D09400FAA9E9 /* ImageController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AE80C41D21D09400FAA9E9 /* ImageController.swift */; };
 		21AFB10D1D1C62A3007E0EC5 /* SongController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AFB10C1D1C62A3007E0EC5 /* SongController.swift */; };
 		21AFB10F1D1C62A8007E0EC5 /* PlaylistController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AFB10E1D1C62A8007E0EC5 /* PlaylistController.swift */; };
@@ -55,9 +55,9 @@
 		217A3DEB1D2EC355002B3A67 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		217E56E11D18609A00A76A36 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		217E57141D186B3900A76A36 /* Stack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stack.swift; sourceTree = "<group>"; };
-		217E571A1D18926200A76A36 /* Vote+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vote+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		217E571B1D18926200A76A36 /* Vote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Vote.swift; sourceTree = "<group>"; };
 		217E57281D18AF9B00A76A36 /* NetworkController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkController.swift; sourceTree = "<group>"; };
+		21A864BC1D3494330066CF12 /* Vote+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Vote+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		21A864BD1D3494330066CF12 /* Vote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Vote.swift; sourceTree = "<group>"; };
 		21AE80C41D21D09400FAA9E9 /* ImageController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageController.swift; sourceTree = "<group>"; };
 		21AFB10C1D1C62A3007E0EC5 /* SongController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongController.swift; sourceTree = "<group>"; };
 		21AFB10E1D1C62A8007E0EC5 /* PlaylistController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaylistController.swift; sourceTree = "<group>"; };
@@ -133,10 +133,10 @@
 				21E7D5511D2810CE0093C28C /* Playlist.swift */,
 				21E7D5521D2810CE0093C28C /* Song+CoreDataProperties.swift */,
 				21E7D5531D2810CE0093C28C /* Song.swift */,
-				217E571A1D18926200A76A36 /* Vote+CoreDataProperties.swift */,
-				217E571B1D18926200A76A36 /* Vote.swift */,
 				21F20FF31D23238700ACE152 /* TempSong.swift */,
 				21E7D55A1D28839C0093C28C /* TempPlaylist.swift */,
+				21A864BC1D3494330066CF12 /* Vote+CoreDataProperties.swift */,
+				21A864BD1D3494330066CF12 /* Vote.swift */,
 			);
 			name = Model;
 			path = ..;
@@ -318,15 +318,15 @@
 				21C6E4DC1D1464E0001F6F54 /* SongTableViewCell.swift in Sources */,
 				214C79631D2562C100F3069E /* ManageTableViewController.swift in Sources */,
 				21C6E4D81D1464CD001F6F54 /* CreatePlaylistViewController.swift in Sources */,
+				21A864BF1D3494330066CF12 /* Vote.swift in Sources */,
 				21AE80C51D21D09400FAA9E9 /* ImageController.swift in Sources */,
 				21F20FF21D23190400ACE152 /* MusicController.swift in Sources */,
 				21C6E4BA1D145DA0001F6F54 /* AppDelegate.swift in Sources */,
 				21E7D5561D2810CE0093C28C /* Playlist+CoreDataProperties.swift in Sources */,
-				217E57231D18926200A76A36 /* Vote.swift in Sources */,
-				217E57221D18926200A76A36 /* Vote+CoreDataProperties.swift in Sources */,
 				21C6E4D01D1464A1001F6F54 /* SearchPlaylistResultsTableViewController.swift in Sources */,
 				21C6E4D61D1464C0001F6F54 /* SearchSongResultsTableViewController.swift in Sources */,
 				21B37F681D301AFA0033D035 /* User+CoreDataProperties.swift in Sources */,
+				21A864BE1D3494330066CF12 /* Vote+CoreDataProperties.swift in Sources */,
 				21C6E4D21D1464AE001F6F54 /* SongsTableViewController.swift in Sources */,
 				21E7D5581D2810CE0093C28C /* Song+CoreDataProperties.swift in Sources */,
 				21C6E4CC1D146487001F6F54 /* PlaylistTableViewController.swift in Sources */,

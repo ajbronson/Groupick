@@ -11,7 +11,7 @@ import UIKit
 class SongsTableViewController: UITableViewController, songVoteProtocol, nextButtonProtocol {
     
     var playlist: Playlist?
-    var songs: [Song]?
+    var songs = [Song]()
     var nowPlayingSong: Song?
     var previouslyPlayedSongs = [Song]()
     var songOrder = [(Int, Song)]()
@@ -62,7 +62,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     }
     
     func addCKSong(song: Song) {
-        songs?.append(song)
+        
         if let votes = song.votes?.array as? [Vote] {
             let count = votes.flatMap({Int($0.vote!)}).reduce(0, combine: +)
             var added = false
@@ -70,11 +70,13 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                 if count > songOrder[i].0 || (count >= songOrder[i].0 && song.dateCreated.isLessThanDate(songOrder[i].1.dateCreated)) {
                     added = true
                     songOrder.insert((count, song), atIndex: i)
+                    songs.insert(song, atIndex: i)
                     insertCKSongAt(i)
                 }
             }
             if !added {
                 songOrder.append((count, song))
+                songs.append(song)
                 insertCKSongAt(songOrder.count - 1)
             }
         }
@@ -87,10 +89,12 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         } else {
             index = NSIndexPath(forRow: location, inSection: 0)
         }
-        tableView.insertRowsAtIndexPaths([index], withRowAnimation: .Right)
+        dispatch_async(dispatch_get_main_queue()) { 
+            self.tableView.insertRowsAtIndexPaths([index], withRowAnimation: .Right)
+        }
     }
     
-    func addCKVote(vote: Vote) {
+    func changeCKVote(vote: Vote, add: Bool) {
         var section: Int
         if playlist?.nowPlaying != nil {
             section = 1
@@ -102,9 +106,53 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
             let index = NSIndexPath(forRow: i, inSection: section)
             if let cell = tableView.cellForRowAtIndexPath(index) as? SongTableViewCell {
                 if cell.song?.id == vote.song.id {
-                    reloadCellVotes(cell, song: vote.song, numberOfVotes: Int(vote.vote!))
+                    if var voteArray = cell.song?.votes?.array as? [Vote] {
+                        if add {
+                            voteArray.append(vote)
+                        } else {
+                            let voteIndex = voteArray.indexOf(vote)
+                            if let voteIndex = voteIndex {
+                                voteArray.removeAtIndex(voteIndex)
+                            }
+                        }
+
+                    }
+                    dispatch_async(dispatch_get_main_queue(), {
+                        self.reloadCellVotes(cell, song: vote.song, numberOfVotes: self.returnAllVotes(vote.song))
+                    })
                 }
             }
+        }
+    }
+    
+    func returnAllVotes(song: Song) -> Int {
+        
+        if let voteArray = song.votes?.array as? [Vote] {
+            let totalVotesArray = voteArray.flatMap({$0.vote})
+            var intArray = [Int]()
+            for number in totalVotesArray {
+                intArray.append(Int(number))
+            }
+            let totalVotes = intArray.reduce(0, combine: +)
+            return totalVotes
+        } else {
+            return 0
+        }
+    }
+    
+    func removeCKSong(song: Song) {
+        let location = songs.indexOf(song)
+        if let location = location {
+            songs.removeAtIndex(location)
+            var index: NSIndexPath
+            if playlist?.nowPlaying != nil {
+                index = NSIndexPath(forRow: location, inSection: 1)
+            } else {
+                index = NSIndexPath(forRow: location, inSection: 0)
+            }
+            dispatch_async(dispatch_get_main_queue(), {
+                self.tableView.deleteRowsAtIndexPaths([index], withRowAnimation: .Fade)
+            })
         }
     }
 
@@ -193,18 +241,18 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
             if section == 0 {
                 return 1
             } else if section == 1 {
-                return songs?.count ?? 0
+                return songs.count
             } else {
                 return previouslyPlayedSongs.count
             }
         } else if previouslyPlayedSongs.count > 0 {
             if section == 0 {
-                return songs?.count ?? 0
+                return songs.count
             } else {
                 return previouslyPlayedSongs.count
             }
         } else {
-            return songs?.count ?? 0
+            return songs.count
         }
         
     }
@@ -219,7 +267,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                         cell?.updateWithNoButtons(song)
                     }
                 } else if indexPath.section == 1 {
-                    if let songs = songs {
+                    if songs.count > 0 {
                         cell?.updateWith(songs[indexPath.row])
                     }
                 } else {
@@ -231,7 +279,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                         cell?.updateWithNoButtons(song)
                     }
                 } else if indexPath.section == 1 {
-                    if let songs = songs {
+                    if songs.count > 0 {
                         cell?.updateWith(songs[indexPath.row])
                     }
                 }
@@ -239,13 +287,13 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
             
         } else if previouslyPlayedSongs.count > 0 {
             if indexPath.row == 0 {
-                if let songs = songs {
+                if songs.count > 0 {
                     cell?.updateWith(songs[indexPath.row])
                 }
             } else {
                 cell?.updateWithNoButtons(previouslyPlayedSongs[indexPath.row])
             }
-        } else if let songs = songs {
+        } else if songs.count > 0 {
             cell?.updateWith(songs[indexPath.row])
         }
         
@@ -258,7 +306,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     func numberOfSections() -> Int {
         if nowPlayingSong != nil {
             return previouslyPlayedSongs.count > 0 ? 3 : 2
-        } else if previouslyPlayedSongs.count > 0 && songs?.count > 0 {
+        } else if previouslyPlayedSongs.count > 0 && songs.count > 0 {
             return 2
         } else {
             return 1
@@ -297,7 +345,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     // Override to support conditional editing of the table view.
     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
         
-        if let songs = songs {
+        if songs.count > 0 {
             if nowPlayingSong != nil {
                 if indexPath.section == 1 {
                     if songs[indexPath.row].addedBy?.id == UserController.getUserID() || playlist?.creator.id == UserController.getUserID() {
@@ -327,7 +375,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
             let song = songOrder[indexPath.row].1
             SongController.sharedController.deleteSong(song)
             songOrder.removeAtIndex(indexPath.row)
-            songs?.removeAtIndex(indexPath.row)
+            songs.removeAtIndex(indexPath.row)
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
         }
     }
@@ -397,7 +445,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                     //tableView.insertSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
                     //tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Bottom)
                 } else if let npSong = nowPlayingSong {
-                    addSongToPreviousPlaylist(npSong)
+                    addSongToPreviousPlaylist(npSong, togglePlay: true)
                     PlaylistController.sharedController.nowPlaying(playlist, song: song)
                     nowPlayingSong = song
                     //tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Left)
@@ -412,7 +460,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
             }
         } else {
             if let song = nowPlayingSong {
-                addSongToPreviousPlaylist(song)
+                addSongToPreviousPlaylist(song, togglePlay: true)
             }
             for song in previouslyPlayedSongs {
                 SongController.sharedController.togglePlayed(song)
@@ -421,6 +469,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
             songs = previouslyPlayedSongs
             previouslyPlayedSongs = [Song]()
             nowPlayingSong = nil
+            PlaylistController.sharedController.nowPlaying(playlist, song: nil)
             playlist.nowPlaying = nil
             if let songs = playlist.songs?.array as? [Song] {
                 SongController.sharedController.deleteAllVotes(songs)
@@ -430,8 +479,10 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         tableView.reloadData()
     }
     
-    func addSongToPreviousPlaylist(song: Song) {
-        SongController.sharedController.togglePlayed(song)
+    func addSongToPreviousPlaylist(song: Song, togglePlay: Bool) {
+        if togglePlay {
+            SongController.sharedController.togglePlayed(song)
+        }
         var added = false
         for i in 0..<previouslyPlayedSongs.count {
             if song.dateCreated.isLessThanDate(previouslyPlayedSongs[i].dateCreated) {
@@ -443,6 +494,50 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         
         if !added {
             previouslyPlayedSongs.append(song)
+        }
+    }
+    
+    func receivedNewNowPlayingNotification(songID: String?) {
+        if songID != nil  {
+            if songs.count > 0 {
+                var newSong: Song?
+                var newSongAt = 0
+                var found = false
+                for i in 0..<songs.count {
+                    if songs[i].id == songID {
+                        newSongAt = i
+                        found = true
+                        break
+                    }
+                }
+                if found {
+                    newSong = songs[newSongAt]
+                    songs.removeAtIndex(newSongAt)
+                    songOrder.removeAtIndex(newSongAt)
+                    if nowPlayingSong == nil {
+                        nowPlayingSong = newSong
+                    } else if let song = nowPlayingSong {
+                        addSongToPreviousPlaylist(song, togglePlay: false)
+                        nowPlayingSong = newSong
+                    }
+                    //tableView.reloadData()
+                }
+                
+            }
+        } else if let song = nowPlayingSong {
+            addSongToPreviousPlaylist(song, togglePlay: false)
+            for song in previouslyPlayedSongs {
+                songOrder.append((0, song))
+            }
+            songs = previouslyPlayedSongs
+            previouslyPlayedSongs = [Song]()
+            nowPlayingSong = nil
+            //tableView.reloadData()
+            
+        }
+
+        dispatch_async(dispatch_get_main_queue()) { 
+            self.tableView.reloadData()
         }
     }
 }

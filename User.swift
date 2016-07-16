@@ -21,7 +21,7 @@ class User: NSManagedObject, CloudKitManagedObject {
         return "User"
     }
     
-    convenience init?(firstName: String, lastName: String, id: String = NSUUID().UUIDString, cloudKitRecordName: String?, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
+    convenience init(firstName: String, lastName: String, id: String = NSUUID().UUIDString, cloudKitRecordName: String?, context: NSManagedObjectContext = Stack.sharedStack.managedObjectContext) {
         guard let entity = NSEntityDescription.entityForName("User", inManagedObjectContext: context) else { fatalError("Core data failed to create entity") }
         self.init(entity: entity, insertIntoManagedObjectContext: context)
         self.firstName = firstName

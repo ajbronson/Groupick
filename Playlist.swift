@@ -50,7 +50,9 @@ class Playlist: NSManagedObject, CloudKitManagedObject {
         if let user = UserController.userWithID(creator.recordID) {
             self.creator = user
         }
-        
+        if let nowPlaying = record[kNowPlaying] as? String {
+            self.nowPlaying = nowPlaying
+        }
     }
     
     var cloudKitRecord: CKRecord? {

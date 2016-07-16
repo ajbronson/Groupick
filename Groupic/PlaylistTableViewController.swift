@@ -133,13 +133,9 @@ class PlaylistTableViewController: UITableViewController, NSFetchedResultsContro
             text.addTarget(self, action: #selector(PlaylistTableViewController.textChanged(_:)), forControlEvents: .EditingChanged)
         }
         let okAction = UIAlertAction(title: "Done", style: .Default) { (_) in
-            guard let first = self.firstNameTextField?.text, last = self.lastNameTextField?.text where first.characters.count > 0 && last.characters.count > 0  else { return }
+            guard let first = self.firstNameTextField?.text, last = self.lastNameTextField?.text where first.characters.count > 0 && last.characters.count > 0  else { self.createUserAlertController(identifier); return }
             let user = User(firstName: first, lastName: last, cloudKitRecordName: identifier)
-            if let user = user {
-                UserController.saveUser(user)
-            } else {
-                self.createUserAlertController(identifier)
-            }
+            UserController.saveUser(user)
         }
         alert.addAction(okAction)
         alert.actions[0].enabled = false

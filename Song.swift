@@ -67,8 +67,7 @@ class Song: NSManagedObject, CloudKitManagedObject {
            self.image = NSData(contentsOfURL: imageURL.fileURL)
         }
         self.changeToken = record.recordChangeTag
-        
-        //TODO: added by needs to be done here
+        self.addedBy = UserController.userWithID(addedByReference.recordID)
     }
     
     var cloudKitRecord: CKRecord? {

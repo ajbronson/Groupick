@@ -55,60 +55,176 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         guard let notificationInfo = userInfo as? [String: NSObject] else { return }
         let notification = CKQueryNotification(fromRemoteNotificationDictionary: notificationInfo)
+        let reason = notification.queryNotificationReason.rawValue //1 = creation, 3 = deletion
+        guard let recordID = notification.recordID else { return }
         
-        if let subID = notification.subscriptionID where subID.containsString("Delete_Playlist_") {
-            let subscriptionID = subID.substringFromIndex(subID.startIndex.advancedBy(16))
-            if let playlist = PlaylistController.sharedController.playlistWithID(subscriptionID) {
-                if let root = UIApplication.topViewController() as? SongsTableViewController {
-                    if root.playlist?.id == subscriptionID {
-                      root.navigationController?.popViewControllerAnimated(true)
-                    }
-                } else if let root = UIApplication.topViewController() as? SearchSongTableViewController {
-                    if root.playlist?.id == subscriptionID {
-                        root.navigationController?.popViewControllerAnimated(true)?.navigationController?.popViewControllerAnimated(true)
-                    }
-                } else if let root = UIApplication.topViewController() as? UISearchController, let rootView = root.searchResultsController as? SearchSongResultsTableViewController {
-                    if rootView.playlist?.id == subscriptionID {
-                        root.dismissViewControllerAnimated(true, completion: {
-                            if let newRoot = UIApplication.topViewController() as? SearchSongTableViewController {
-                                newRoot.navigationController?.popViewControllerAnimated(true)?.navigationController?.popViewControllerAnimated(true)
+        if let subID = notification.subscriptionID where subID.containsString("Song_") {
+            
+            switch reason {
+            case 1:
+                fetchRecord(recordID, completion: { (record) in
+                    if let record = record {
+                        let song = Song(record: record)
+                        PlaylistController.sharedController.save()
+                        if let song = song {
+                            if let root = UIApplication.topViewController() as? SongsTableViewController {
+                                if root.playlist?.id == song.playlist.id {
+                                    root.addCKSong(song)
+                                }
                             }
-                        })
+                        }
+                    }
+                })
+
+            case 2:
+                
+                if let song = SongController.sharedController.songWithID(recordID.recordName) {
+
+                    if let recordFields = notification.recordFields,
+                        let previous = recordFields["previouslyPlayed"] as? Bool {
+                        song.previouslyPlayed = previous
+                        PlaylistController.sharedController.save()
                     }
                 }
-                PlaylistController.sharedController.deletePlaylist(playlist)
+                
+            case 3:
+                let song = SongController.sharedController.songWithID(recordID.recordName)
+                if let song = song {
+                    if let root = UIApplication.topViewController() as? SongsTableViewController {
+                        if root.playlist?.id == song.playlist.id {
+                            root.removeCKSong(song)
+                        }
+                    }
+                    SongController.sharedController.deleteSong(song)
+                }
+
+            default:
+                break
             }
-        } else if let recordID = notification.recordID {
-            CloudKitManager.sharedManager.fetchRecordWithID(recordID, completion: { (record, error) in
-                if let record = record {
-                    let song = Song(record: record)
-                    let vote = Vote(record: record)
-                    PlaylistController.sharedController.save()
-                    if let song = song {
+            print("Received Song Remote Notification")
+            
+        } else if let subID = notification.subscriptionID where subID.containsString("Playlist_") {
+            
+            switch reason {
+            case 2:
+                let subscriptionID = subID.substringFromIndex(subID.startIndex.advancedBy(9))
+                if let playlist = PlaylistController.sharedController.playlistWithID(subscriptionID) {
+
+                    if let recordFields = notification.recordFields,
+                        let nowPlayingID = recordFields[kNowPlaying] as? String {
+                        playlist.nowPlaying = nowPlayingID
+                        PlaylistController.sharedController.save()
                         if let root = UIApplication.topViewController() as? SongsTableViewController {
-                            if root.playlist?.id == song.playlist.id {
-                                root.addCKSong(song)
+                            if root.playlist?.id == subscriptionID {
+                                root.receivedNewNowPlayingNotification(nowPlayingID)
                             }
                         }
-                        SongController.sharedController.addSubscriptionToSongVotes(song, completion: { (success, error) in
-                            if let error = error {
-                                print("error subscribing to vote - \(error.localizedDescription)")
-                            }
-                        })
-                    } else if let vote = vote {
+                    } else {
+                        playlist.nowPlaying = nil
+                        PlaylistController.sharedController.save()
                         if let root = UIApplication.topViewController() as? SongsTableViewController {
-                            if root.playlist?.id == vote.song.playlist.id {
-                                root.addCKVote(vote)
+                            if root.playlist?.id == subscriptionID {
+                                root.receivedNewNowPlayingNotification(nil)
                             }
                         }
                     }
                 }
-            })
+            case 3:
+                if let playlist = PlaylistController.sharedController.playlistWithID(recordID.recordName) {
+                    changeScreenOnPlaylistRemoval(recordID)
+                    PlaylistController.sharedController.removePlaylistFromCoreData(playlist)
+                }
+            default:
+                break
+            }
+            print("Received Playlist Remote Notification")
+            
+        } else if let subID = notification.subscriptionID where subID.containsString("Votes_") {
+            
+            switch reason {
+            case 1:
+                fetchRecord(recordID, completion: { (record) in
+                    if let record = record {
+                        let vote = Vote(record: record)
+                        PlaylistController.sharedController.save()
+                        if let vote = vote {
+                            if let root = UIApplication.topViewController() as? SongsTableViewController {
+                                if root.playlist?.id == vote.song.playlist.id {
+                                    root.changeCKVote(vote, add: true)
+                                }
+                            }
+                        }
+                    }
+                })
+    
+            case 3:
+                let vote = SongController.sharedController.voteWithID(recordID.recordName)
+                if let vote = vote {
+                    if let root = UIApplication.topViewController() as? SongsTableViewController {
+                        if root.playlist?.id == vote.playlistRecordName {
+                            root.changeCKVote(vote, add: false)
+                        }
+                    }
+                    SongController.sharedController.deleteVote(vote)
+                }
+            default:
+                break
+            }
+            print("Received Votes Remote Notification")
+            
+        } else if let subID = notification.subscriptionID where subID.containsString("UserP_") {
+            
+            switch reason {
+            case 3:
+                if let recordFields = notification.recordFields,
+                    let playlistID = recordFields["playlist"] as? String,
+                    let userID = recordFields["user"] as? String {
+                    if userID == UserController.getUserID() {
+                        if let playlist = PlaylistController.sharedController.playlistWithID(playlistID) {
+                            changeScreenOnPlaylistRemoval(CKRecordID(recordName: playlistID))
+                            PlaylistController.sharedController.removePlaylistFromCoreData(playlist)
+                        }
+                    }
+                }
+            default:
+                break
+            }
+            print("Received User Playlist Remote Notification")
         }
         
         completionHandler(UIBackgroundFetchResult.NewData)
     }
     
+    func fetchRecord(recordID: CKRecordID, completion: (record: CKRecord?) -> Void) {
+        CloudKitManager.sharedManager.fetchRecordWithID(recordID, completion: { (record, error) in
+            if let record = record {
+                completion(record: record)
+            } else if let error = error {
+                completion(record: nil)
+                print("Error fetching item from subscription in App delegate - \(error.localizedDescription)")
+            }
+        })
+    }
+    
+    func changeScreenOnPlaylistRemoval(recordID: CKRecordID) {
+        if let root = UIApplication.topViewController() as? SongsTableViewController {
+            if root.playlist?.id == recordID.recordName {
+                root.navigationController?.popViewControllerAnimated(true)
+            }
+        } else if let root = UIApplication.topViewController() as? SearchSongTableViewController {
+            if root.playlist?.id == recordID.recordName {
+                root.navigationController?.popViewControllerAnimated(true)?.navigationController?.popViewControllerAnimated(true)
+            }
+        } else if let root = UIApplication.topViewController() as? UISearchController, let rootView = root.searchResultsController as? SearchSongResultsTableViewController {
+            if rootView.playlist?.id == recordID.recordName {
+                root.dismissViewControllerAnimated(true, completion: {
+                    if let newRoot = UIApplication.topViewController() as? SearchSongTableViewController {
+                        newRoot.navigationController?.popViewControllerAnimated(true)?.navigationController?.popViewControllerAnimated(true)
+                    }
+                })
+            }
+        }
+    }
 }
 
 extension UIApplication {

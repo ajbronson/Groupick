@@ -19,6 +19,7 @@ class PlaylistController {
     let fetchedResultsController: NSFetchedResultsController
     
     var playlists: [Playlist] = []
+    var subscriptionCount = 0
     
     init() {
         let request = NSFetchRequest(entityName: "Playlist")
@@ -26,6 +27,7 @@ class PlaylistController {
         request.sortDescriptors = [sortDescriptor1]
         fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
         _ = try? fetchedResultsController.performFetch()
+        //TODO: Sometimes I need this - unsubscribeFromAll()
     }
     
     func createPlaylist(name: String, isPublic: Bool, passcode: String?) {
@@ -43,11 +45,6 @@ class PlaylistController {
                     }
                     self.createUserPlaylistCKRecord(playlist)
                 })
-                addSubscriptionToPlaylistSongs(playlist, completion: { (success, error) in
-                    if let error = error {
-                        print("Unable to save song subscription: \(error.localizedDescription)")
-                    }
-                })
             }
         }
     }
@@ -57,14 +54,9 @@ class PlaylistController {
         
         save()
         if let newPlaylist = newPlaylist {
-            addSubscriptionToPlaylistSongs(newPlaylist, completion: { (success, error) in
-                if let error = error {
-                    print("Unable to save song subscription: \(error.localizedDescription)")
-                }
-            })
             if let ckRecord = newPlaylist.cloudKitRecord {
                 let predicate = NSPredicate(format: "playlist == %@", argumentArray: [ckRecord.recordID])
-                CloudKitManager.sharedManager.fetchRecordsWithType("Song", predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
+                CloudKitManager.sharedManager.fetchRecordsWithType(CloudKitManager.RecordTypes.song.rawValue, predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
                     if let records = records {
                         var songs = [Song]()
                         for record in records {
@@ -75,10 +67,9 @@ class PlaylistController {
                             }
                         }
                         for song in songs {
-                            //TODO: need to subscribe to these songs deletions, and their votes
                             if let songCKRecord = song.cloudKitRecord {
                                 let predicate = NSPredicate(format: "song == %@", argumentArray: [songCKRecord.recordID])
-                                CloudKitManager.sharedManager.fetchRecordsWithType("Vote", predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
+                                CloudKitManager.sharedManager.fetchRecordsWithType(CloudKitManager.RecordTypes.vote.rawValue, predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
                                     if let records = records {
                                         for record in records {
                                             let _ = Vote(record: record)
@@ -90,20 +81,12 @@ class PlaylistController {
                         }
                     }
                     self.createUserPlaylistCKRecord(newPlaylist)
-                    self.subscribeToPlaylistDeletion(newPlaylist)
                 })
             }
         }
     }
     
-    func subscribeToPlaylistDeletion(playlist: Playlist) {
-        let predicate = NSPredicate(format: "id == %@", argumentArray: [playlist.cloudKitRecordID.recordName])
-        CloudKitManager.sharedManager.subscribe("Playlist", predicate: predicate, identifier: "Delete_Playlist_\(playlist.cloudKitRecordID.recordName)", contentAvailable: true, options: .FiresOnRecordDeletion) { (subscription, error) in
-            if let error = error {
-                print("Error saving Playlist Deletion Subscription - \(error.localizedDescription)")
-            }
-        }
-    }
+
     
     func createUserPlaylistCKRecord(playlist: Playlist) {
         if let userCKRID = UserController.getUser()?.cloudKitRecordID {
@@ -118,14 +101,26 @@ class PlaylistController {
                 if let error = error {
                     print("error saving user playlist object to CloudKit - \(error.localizedDescription)")
                 }
+                self.addSubscriptions(playlist)
             })
         }
     }
     
-    func nowPlaying(playlist: Playlist, song: Song) {
-        playlist.nowPlaying = song.id
+    func nowPlaying(playlist: Playlist, song: Song?) {
+        if let song = song {
+           playlist.nowPlaying = song.id
+        } else {
+            playlist.nowPlaying = nil
+        }
         save()
-        
+        if let record = playlist.cloudKitRecord {
+            CloudKitManager.sharedManager.modifyRecords([record], perRecordCompletion: nil, completion: { (records, error) in
+                if let error = error {
+                    print("Error fetching playlist to update now playing - \(error.localizedDescription)")
+
+                }
+            })
+        }
     }
     
     func changePasscode(playlist: Playlist, newCode: String) {
@@ -143,15 +138,36 @@ class PlaylistController {
                     }
                 })
             }
-            playlist.managedObjectContext?.deleteObject(playlist)
-            
-        } else if let user = UserController.getUser() {
-            //TODO: Figure out how to remove user from playlist follower, also remove playlist from user following
-            //let index = playlist.followers?.indexOfObject(user)
-            //playlist.followers.
-            playlist.managedObjectContext?.deleteObject(playlist)
         }
+        
+        else if let user = UserController.getUser() {
+            let predicate = NSPredicate(format: "user == %@ && playlist == %@", argumentArray: [user.cloudKitRecordID, playlist.cloudKitRecordID])
+            removeUserPlaylistCKRecord(predicate)
+        }
+        ubsubscribeFromPlaylist(playlist)
+        playlist.managedObjectContext?.deleteObject(playlist)
         save()
+    }
+    
+    func removePlaylistFromCoreData(playlist: Playlist) {
+        ubsubscribeFromPlaylist(playlist)
+        playlist.managedObjectContext?.deleteObject(playlist)
+        save()
+    }
+    
+    func removeUserPlaylistCKRecord(predicate: NSPredicate) {
+        CloudKitManager.sharedManager.fetchRecordsWithType(CloudKitManager.RecordTypes.userPlaylist.rawValue, predicate: predicate, recordFetchedBlock: nil, completion: { (records, error) in
+            if let records = records {
+                let recordIDs = records.flatMap({$0.recordID})
+                if let recordID = recordIDs.first {
+                    CloudKitManager.sharedManager.deleteRecordWithID(recordID, completion: { (recordID, error) in
+                        if let error = error {
+                            print("error deleting userPlaylist record from CK - \(error.localizedDescription)")
+                        }
+                    })
+                }
+            }
+        })
     }
     
     func playlistWithID(id: String) -> Playlist? {
@@ -171,13 +187,92 @@ class PlaylistController {
         }
     }
     
-    func addSubscriptionToPlaylistSongs(playlist: Playlist, completion: ((success: Bool, error: NSError?) -> Void)?) {
-        let predicate = NSPredicate(format: "playlist == %@", argumentArray: [playlist.cloudKitRecordID])
+    
+    func addSubscriptions(playlist: Playlist) {
+        addSubscriptionToSongs(playlist.cloudKitRecordID)
+    }
+    
+    func addSubscriptionToSongs(playlistRecordID: CKRecordID) {
+        let predicate = NSPredicate(format: "playlist == %@", argumentArray: [playlistRecordID])
+        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.song.rawValue, predicate: predicate, identifier: "Song_\(playlistRecordID.recordName)", alertBody: nil, contentAvailable: true, desiredKeys: ["previouslyPlayed"], options: [.FiresOnRecordCreation, .FiresOnRecordUpdate, .FiresOnRecordDeletion]) { (subscription, error) in
+            if let error = error {
+                print("Error Saving Songs Subscription - \(error.localizedDescription)")
+            }
+            self.addSubscribtionToPlaylist(playlistRecordID)
+        }
+    }
+    
+    func addSubscribtionToPlaylist(playlistRecordID: CKRecordID) {
+        let predicate = NSPredicate(format: "id == %@", argumentArray: [playlistRecordID.recordName])
         
-        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.song.rawValue, predicate: predicate, identifier: playlist.cloudKitRecordID.recordName, alertBody: "Playlist Received A New Song! 😎", contentAvailable: true, desiredKeys: nil, options: .FiresOnRecordCreation) { (subscription, error) in
-            if let completion = completion {
-                let success = subscription != nil
-                completion(success: success, error: error)
+        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.playlist.rawValue, predicate: predicate, identifier: "Playlist_\(playlistRecordID.recordName)", alertBody: nil, contentAvailable: true, desiredKeys: [kNowPlaying], options: [.FiresOnRecordDeletion, .FiresOnRecordUpdate]) { (subscription, error) in
+            if let error = error {
+                print("Error Saving Playlist Subscription - \(error.localizedDescription)")
+            }
+            self.addSubscriptionToVotes(playlistRecordID)
+        }
+    }
+    
+    func addSubscriptionToVotes(playlistRecordID: CKRecordID) {
+        let predicate = NSPredicate(format: "playlist == %@", argumentArray: [playlistRecordID.recordName])
+        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.vote.rawValue, predicate: predicate, identifier: "Votes_\(playlistRecordID.recordName)", alertBody: nil, contentAvailable: true, desiredKeys: nil, options: [.FiresOnRecordCreation, .FiresOnRecordDeletion]) { (subscription, error) in
+            if let error = error {
+                print("Error Saving Vote Subscription - \(error.localizedDescription)")
+            }
+            self.addSubscriptionToUserPlaylists(playlistRecordID)
+        }
+    }
+    
+    func addSubscriptionToUserPlaylists(playlistRecordID: CKRecordID) {
+        let predicate = NSPredicate(format: "playlist == %@", argumentArray: [playlistRecordID])
+        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.userPlaylist.rawValue, predicate: predicate, identifier: "UserP_\(playlistRecordID.recordName)", alertBody: nil, contentAvailable: true, desiredKeys: ["playlist", "user"], options: [.FiresOnRecordDeletion]) { (subscription, error) in
+            if let error = error {
+                print("Error Saving UserPlaylist Subscription - \(error.localizedDescription)")
+            }
+            self.printNumberOfSubscriptions()
+        }
+    }
+    
+    func ubsubscribeFromPlaylist(playlist: Playlist) {
+        let recordName = playlist.cloudKitRecordID.recordName
+        CloudKitManager.sharedManager.fetchSubscriptions { (subscriptions, error) in
+            if let subscriptions = subscriptions {
+                for subscription in subscriptions {
+                    if subscription.subscriptionID == "UserP_\(recordName)" || subscription.subscriptionID == "Votes_\(recordName)" || subscription.subscriptionID == "Playlist_\(recordName)" || subscription.subscriptionID == "Song_\(recordName)" {
+                        CloudKitManager.sharedManager.unsubscribe(subscription, completion: { (subscriptionID, error) in
+                            if let error = error {
+                                print("Error unsubscribing from Playlist's Subscriptions = \(error.localizedDescription)")
+                            }
+                            self.printNumberOfSubscriptions()
+                        })
+                    }
+                }
+            }
+        }
+    }
+    
+    func printNumberOfSubscriptions() {
+        CloudKitManager.sharedManager.fetchSubscriptions { (subscriptions, error) in
+            if let subscriptions = subscriptions {
+                print("THERE ARE >>>>>>>>>>>>>>>>>>>> \(subscriptions.count) <<<<<<<<<<<<<<< SUBSCRIPTIONS")
+            }
+        }
+    }
+    
+    func unsubscribeFromAll() {
+        CloudKitManager.sharedManager.fetchSubscriptions { (subscriptions, error) in
+            if let subscriptions = subscriptions {
+                for subscription in subscriptions {
+                    CloudKitManager.sharedManager.unsubscribe(subscription, completion: { (subscriptionID, error) in
+                        self.subscriptionCount += 1
+                        if let error = error {
+                            print("ERROR UNSUBSCRIBING!!! - \(error.localizedDescription)")
+                        } else {
+                            print("SUCCESS UNSUBSCRIBING! \(self.subscriptionCount)")
+                        }
+                        
+                    })
+                }
             }
         }
     }

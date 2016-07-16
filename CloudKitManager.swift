@@ -17,7 +17,7 @@ class CloudKitManager {
         case playlist = "Playlist"
         case song = "Song"
         case vote = "Vote"
-        case user = "User"
+        case userPlaylist = "UserPlaylist"
     }
     
     static let sharedManager = CloudKitManager()
@@ -290,11 +290,11 @@ class CloudKitManager {
             }
         }
         
-        //        publicDatabase.deleteSubscriptionWithID(subscription.subscriptionID) { (subscription, <#NSError?#>) in
-        //            if let completion = completion {
-        //                completion(subscriptionID: <#T##String?#>, error: <#T##NSError?#>)
-        //            }
-        //        }
+        publicDatabase.deleteSubscriptionWithID(subscription.subscriptionID) { (subscription, error) in
+            if let completion = completion {
+                completion(subscriptionID: subscription, error: error)
+            }
+        }
     }
     
     func fetchSubscriptions(completion: ((subscriptions: [CKSubscription]?, error: NSError?) -> Void)?) {

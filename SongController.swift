@@ -28,14 +28,10 @@ class SongController {
                 }
             })
         }
-        addSubscriptionToSongVotes(song, completion: { (success, error) in
-            if let error = error {
-                print("error subscribing to vote - \(error.localizedDescription)")
-            }
-        })
     }
     
     func deleteSong(song: Song) {
+        let songRecordID = song.cloudKitRecordID
         song.managedObjectContext?.deleteObject(song)
         if let songRecord = song.cloudKitRecord {
             CloudKitManager.sharedManager.deleteRecordWithID(songRecord.recordID, completion: { (recordID, error) in
@@ -45,7 +41,11 @@ class SongController {
             })
         }
         PlaylistController.sharedController.save()
-        
+        CloudKitManager.sharedManager.deleteRecordWithID(songRecordID) { (recordID, error) in
+            if let error = error {
+                print("error deleting song from cloudkit - \(error.localizedDescription)")
+            }
+        }
     }
     
     
@@ -56,6 +56,13 @@ class SongController {
             song.previouslyPlayed = true
         }
         PlaylistController.sharedController.save()
+        if let songRecord = song.cloudKitRecord {
+            CloudKitManager.sharedManager.modifyRecords([songRecord], perRecordCompletion: nil, completion: { (records, error) in
+                if let error = error {
+                    print("Error saving song's previously played update to CK - \(error.localizedDescription)")
+                }
+            })
+        }
     }
     
     func songWithID(id: String) -> Song? {
@@ -66,9 +73,17 @@ class SongController {
         return result?.first
     }
     
-    func addVoteToSong(song: Song, vote: Int) {
+    func voteWithID(id: String) -> Vote? {
+        let predicate = NSPredicate(format: "id == %@", argumentArray: [id])
+        let request = NSFetchRequest(entityName: "Vote")
+        request.predicate = predicate
+        let result = (try? Stack.sharedStack.managedObjectContext.executeFetchRequest(request) as? [Vote]) ?? nil
+        return result?.first
+    }
+    
+    func addVoteToSong(song: Song, vote: Int, playlist: String) {
         if let user = UserController.getUser() {
-            let vote = Vote(song: song, creator: user, vote: vote)
+            let vote  = Vote(song: song, creator: user, playlist: playlist, vote: vote)
             PlaylistController.sharedController.save()
             if let vote = vote, voteRecord = vote.cloudKitRecord {
                 CloudKitManager.sharedManager.saveRecord(voteRecord, completion: { (record, error) in
@@ -77,7 +92,7 @@ class SongController {
                     } else if let error = error {
                         print("error saving vote - \(error.localizedDescription)")
                     }
-               })
+                })
             }
         }
     }
@@ -97,7 +112,7 @@ class SongController {
                 }
             }
         }
-
+        
         PlaylistController.sharedController.save()
     }
     
@@ -111,16 +126,7 @@ class SongController {
         }
     }
     
-    func addSubscriptionToSongVotes(song: Song, completion: ((success: Bool, error: NSError?) -> Void)?) {
-        let predicate = NSPredicate(format: "song == %@", argumentArray: [song.cloudKitRecordID])
-        
-        CloudKitManager.sharedManager.subscribe(CloudKitManager.RecordTypes.vote.rawValue, predicate: predicate, identifier: song.cloudKitRecordID.recordName, alertBody: "Song Received A New Vote! 😎", contentAvailable: true, desiredKeys: nil, options: .FiresOnRecordCreation) { (subscription, error) in
-            if let completion = completion {
-                let success = subscription != nil
-                completion(success: success, error: error)
-            }
-        }
-    }
+    
     
     func fetchSongsWithTerm(term:String, type: searchType, completion:(songs: [TempSong]) -> Void) {
         
@@ -136,14 +142,14 @@ class SongController {
         let url = NSURL(string: "https://itunes.apple.com/search?")
         
         NetworkController.performURLRequest(url!, method: .Get, urlParams: parameters, body: nil) { (data, error) in
-
+            
             guard let data = data,
                 let rawJSON = try? NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments),
                 let json = rawJSON as? [String: AnyObject],
                 let resultDict = json["results"] as? [[String: AnyObject]] else { completion(songs: []); return }
             let songs = resultDict.flatMap({TempSong(dictionary: $0)})
             completion(songs: songs)
-
+            
         }
     }
 }

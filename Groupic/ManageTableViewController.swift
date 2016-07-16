@@ -7,47 +7,82 @@
 //
 
 import UIKit
+import CoreData
+import CloudKit
 
 class ManageTableViewController: UITableViewController {
     
     var playlist: Playlist?
-
+    var users = [TempUser]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        users += ["Amanda Carlson", "Mike Love", "Nic Laughter", "Alan Barth", "Andrew Carlson"]
         if let playlist = playlist  {
             if playlist.isPublic.boolValue {
                 self.navigationController?.toolbarHidden = true
             }
         }
+        
+        setUsers()
     }
     
-    var users: [String] = []
-
+    func setUsers() {
+        guard let playlist = playlist else { return }
+        let predicate = NSPredicate(format: "playlist == %@ && user != %@", argumentArray: [playlist.cloudKitRecordID, CKRecordID(recordName: UserController.getUserID())])
+        CloudKitManager.sharedManager.fetchRecordsWithType(CloudKitManager.RecordTypes.userPlaylist.rawValue, predicate: predicate, recordFetchedBlock: nil) { (records, error) in
+            if let records = records {
+                for userPlaylistRecord in records {
+                    if let userid = userPlaylistRecord["user"] as? CKReference {
+                        CloudKitManager.sharedManager.fetchRecordWithID(userid.recordID, completion: { (record, error) in
+                            if let record = record {
+                                let user = TempUser(record: record, userPlaylistRecordID: userPlaylistRecord.recordID)
+                                if let user = user {
+                                    self.users.append(user)
+                                    let index = NSIndexPath(forRow: self.users.count - 1, inSection: 0)
+                                    dispatch_async(dispatch_get_main_queue(), {
+                                        self.tableView.insertRowsAtIndexPaths([index], withRowAnimation: .Left)
+                                    })
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    
     // MARK: - Table view data source
-
+    
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return users.count
     }
-
+    
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("userCell", forIndexPath: indexPath)
-        cell.textLabel?.text = users[indexPath.row]
-
+        cell.textLabel?.text = "\(users[indexPath.row].firstName) \(users[indexPath.row].lastName)"
+        
         return cell
     }
-
+    
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
             if playlist?.isPublic.boolValue == false {
                 showAlert()
             }
+            CloudKitManager.sharedManager.deleteRecordWithID(users[indexPath.row].recordID, completion: { (recordID, error) in
+                if let error = error {
+                    print("error deleting userPlaylist from manager - \(error.localizedDescription)")
+                }
+            })
             users.removeAtIndex(indexPath.row)
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            
         }
     }
- 
+    
     
     override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return "Followers"
@@ -56,15 +91,15 @@ class ManageTableViewController: UITableViewController {
     @IBAction func changePasscodeButtonTapped(sender: UIBarButtonItem) {
         changePasscode()
     }
-
+    
     @IBAction func cancelButtonTapped(sender: UIBarButtonItem) {
         navigationController?.dismissViewControllerAnimated(true, completion: nil)
     }
     
     func showAlert() {
         let alert = UIAlertController(title: "Warning", message: "This user knows your passcode. Would you like to change your passcode for all future users?", preferredStyle: .Alert)
-        let dismissAction = UIAlertAction(title: "Dismiss", style: .Default, handler: nil)
-        let okAction = UIAlertAction(title: "OK", style: .Cancel) { (_) in
+        let dismissAction = UIAlertAction(title: "No", style: .Default, handler: nil)
+        let okAction = UIAlertAction(title: "Yes", style: .Cancel) { (_) in
             self.changePasscode()
         }
         alert.addAction(dismissAction)
@@ -98,4 +133,20 @@ class ManageTableViewController: UITableViewController {
         let alert = resp as! UIAlertController
         (alert.actions[1] as UIAlertAction).enabled = (tf.text != "")
     }
+}
+
+struct TempUser {
+    
+    let firstName: String
+    let lastName: String
+    let recordID: CKRecordID
+    
+    init?(record: CKRecord, userPlaylistRecordID: CKRecordID) {
+        guard let first = record[kFirst] as? String,
+            let last = record[kLast] as? String else { return nil }
+        self.firstName = first
+        self.lastName = last
+        self.recordID = userPlaylistRecordID
+    }
+    
 }

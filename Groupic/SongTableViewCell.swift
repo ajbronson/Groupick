@@ -102,13 +102,13 @@ class SongTableViewCell: UITableViewCell {
                 if found {
                     if let vote = song.votes?[index] as? Vote, voteInt = vote.vote {
                         if Int(voteInt) != int {
-                            SongController.sharedController.addVoteToSong(song, vote: int)
+                            SongController.sharedController.addVoteToSong(song, vote: int, playlist: song.playlist.id)
                         }
                         SongController.sharedController.deleteVote(vote)
                         delegate?.reloadCellVotes(self, song: song, numberOfVotes: returnAllVotes())
                     }
                 } else {
-                    SongController.sharedController.addVoteToSong(song, vote: int)
+                    SongController.sharedController.addVoteToSong(song, vote: int, playlist: song.playlist.id)
                     delegate?.reloadCellVotes(self, song: song, numberOfVotes: returnAllVotes())
                 }
             } 
