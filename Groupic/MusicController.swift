@@ -17,10 +17,11 @@ class MusicController: NSObject {
     let controller = MPMusicPlayerController()
     
     var delegate: nextButtonProtocol?
+    let remoteCenter = MPRemoteCommandCenter.sharedCommandCenter()
     
     override init() {
         super.init()
-        let remoteCenter = MPRemoteCommandCenter.sharedCommandCenter()
+        //let remoteCenter = MPRemoteCommandCenter.sharedCommandCenter()
         remoteCenter.pauseCommand.enabled = true
         remoteCenter.playCommand.enabled = true
         remoteCenter.nextTrackCommand.enabled = true
@@ -30,6 +31,13 @@ class MusicController: NSObject {
         remoteCenter.nextTrackCommand.addTarget(self, action: #selector(nextButtonClicked))
         remoteCenter.togglePlayPauseCommand.addTarget(self, action: #selector(pause))
         controller.beginGeneratingPlaybackNotifications()
+        
+        UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
+        //let me = AVAudioSessionCategoryPlayback.
+        
+       // AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback()
+        
+        //[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:nil error:nil];
     }
     
     
