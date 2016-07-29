@@ -10,14 +10,17 @@ import Foundation
 import MediaPlayer
 import UIKit
 
-class MusicController: NSObject {
+class MusicController: NSObject, AVAudioPlayerDelegate {
     
     static let sharedController = MusicController()
     
-    let controller = MPMusicPlayerController()
+    let controller = MPMusicPlayerController.applicationMusicPlayer()
     
     var delegate: nextButtonProtocol?
     let remoteCenter = MPRemoteCommandCenter.sharedCommandCenter()
+    let infoCenter = MPNowPlayingInfoCenter.defaultCenter()
+    let myPlay = AVAudioPlayer()
+    var player: AVAudioPlayer!
     
     override init() {
         super.init()
@@ -33,22 +36,23 @@ class MusicController: NSObject {
         controller.beginGeneratingPlaybackNotifications()
         
         UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
-        //let me = AVAudioSessionCategoryPlayback.
+        configureNowPlaying()
         
-       // AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback()
-        
-        //[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:nil error:nil];
+    }
+    
+    func configureNowPlaying() {
+        infoCenter.nowPlayingInfo = ["Hi":"Test"]
     }
     
     
     func setQueue(trackIDs: [String]) {
-        
         controller.setQueueWithStoreIDs(trackIDs)
     }
     
     func play() {
         NSLog("play")
         controller.play()
+        myPlay.play()
     }
     
     func pause() {
