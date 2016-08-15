@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CloudKit
 
 class SongsTableViewController: UITableViewController, songVoteProtocol, nextButtonProtocol {
     
@@ -15,6 +16,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     var nowPlayingSong: Song?
     var previouslyPlayedSongs = [Song]()
     var songOrder = [(Int, Song)]()
+    var busy: [Int] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,6 +65,12 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     
     func addCKSong(song: Song) {
         
+        while busy.count > 0 {
+            sleep(1)
+        }
+        
+        busy.append(1)
+        
         if let votes = song.votes?.array as? [Vote] {
             let count = votes.flatMap({Int($0.vote!)}).reduce(0, combine: +)
             var added = false
@@ -89,12 +97,13 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
         } else {
             index = NSIndexPath(forRow: location, inSection: 0)
         }
-        dispatch_async(dispatch_get_main_queue()) { 
+        dispatch_async(dispatch_get_main_queue()) {
             self.tableView.insertRowsAtIndexPaths([index], withRowAnimation: .Right)
+            self.busy.removeAtIndex(0)
         }
     }
     
-    func changeCKVote(vote: Vote, add: Bool) {
+    func changeCKVote(vote: Vote, add: Bool, song: Song) {
         var section: Int
         if playlist?.nowPlaying != nil {
             section = 1
@@ -118,7 +127,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
 
                     }
                     dispatch_async(dispatch_get_main_queue(), {
-                        self.reloadCellVotes(cell, song: vote.song, numberOfVotes: self.returnAllVotes(vote.song))
+                        self.reloadCellVotes(cell, song: song, numberOfVotes: self.returnAllVotes(song))
                     })
                 }
             }
@@ -397,6 +406,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     @IBAction func playButtonTapped(sender: UIBarButtonItem) {
         guard let playlist = playlist else { return }
         if playlist.nowPlaying == nil {
+            MusicController.sharedController.setQueue([""])
             setNextSongAsNowPlaying(false)
         } else if let checkSongs = playlist.songs?.array as? [Song] {
             let checkSongIDs = checkSongs.flatMap({$0.id})
@@ -405,6 +415,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                 if MusicController.sharedController.controller.nowPlayingItem == nil || MusicController.sharedController.controller.nowPlayingItem?.title != title {
                     //queue it up and play it
                     MusicController.sharedController.setQueue([trackID])
+                    MusicController.sharedController.incrementIgnoreCount(2)
                     MusicController.sharedController.play()
                 } else {
                     //just play
@@ -428,35 +439,32 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
     
     func setNextSongAsNowPlaying(next: Bool) {
         guard let playlist = playlist else { return }
-        
         if songOrder.count > 0 {
             if let trackID = songOrder[0].1.trackID {
                 let song = songOrder[0].1
                 songOrder.removeAtIndex(0)
                 songs = songOrder.flatMap({$1})
-                //let index = NSIndexPath(forRow: 0, inSection: whichSectionForSongs())
-                //tableView.deleteRowsAtIndexPaths([index], withRowAnimation: .Automatic)
-                MusicController.sharedController.controller.setQueueWithStoreIDs([trackID])
-                //let indexPath = NSIndexPath(forRow: 0, inSection: 0)
                 if nowPlayingSong == nil {
+                    MusicController.sharedController.setQueue([""])
                     PlaylistController.sharedController.nowPlaying(playlist, song: song)
                     nowPlayingSong = song
                     tableView.reloadData()
-                    //tableView.insertSections(NSIndexSet(index: 1), withRowAnimation: .Automatic)
-                    //tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Bottom)
                 } else if let npSong = nowPlayingSong {
                     addSongToPreviousPlaylist(npSong, togglePlay: true)
                     PlaylistController.sharedController.nowPlaying(playlist, song: song)
                     nowPlayingSong = song
-                    //tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Left)
                 }
+                MusicController.sharedController.controller.setQueueWithStoreIDs([trackID])
                 if next {
                     MusicController.sharedController.nextSong()
+                    MusicController.sharedController.incrementIgnoreCount(1)
                     if MusicController.sharedController.controller.nowPlayingItem == nil {
                         MusicController.sharedController.play()
+                        MusicController.sharedController.incrementIgnoreCount(1)
                     }
                 }
                 MusicController.sharedController.play()
+                MusicController.sharedController.incrementIgnoreCount(1)
             }
         } else {
             if let song = nowPlayingSong {
@@ -475,6 +483,7 @@ class SongsTableViewController: UITableViewController, songVoteProtocol, nextBut
                 SongController.sharedController.deleteAllVotes(songs)
             }
             MusicController.sharedController.stop()
+            MusicController.sharedController.incrementIgnoreCount(1)
         }
         tableView.reloadData()
     }

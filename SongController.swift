@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import CloudKit
 
 class SongController {
     
@@ -22,28 +23,31 @@ class SongController {
         let song = Song(playlist: playlist, title: title, artist: artist, trackID: trackID, image: image)
         PlaylistController.sharedController.save()
         if let songRecord = song.cloudKitRecord {
-            CloudKitManager.sharedManager.saveRecord(songRecord, completion: { (record, error) in
-                if let record = record {
-                    song.update(record)
-                }
-            })
+            saveSongToCK(songRecord)
         }
+    }
+    
+    func saveSongToCK(songRecord: CKRecord) {
+        CloudKitManager.sharedManager.saveRecord(songRecord, completion: { (record, error) in
+            if let error = error {
+                print("error saving song to cloudkit - \(error.localizedDescription)... trying again...")
+                self.saveSongToCK(songRecord)
+            }
+        })
     }
     
     func deleteSong(song: Song) {
         let songRecordID = song.cloudKitRecordID
         song.managedObjectContext?.deleteObject(song)
-        if let songRecord = song.cloudKitRecord {
-            CloudKitManager.sharedManager.deleteRecordWithID(songRecord.recordID, completion: { (recordID, error) in
-                if let error = error {
-                    print("Error deleting Song - \(error.localizedDescription)")
-                }
-            })
-        }
         PlaylistController.sharedController.save()
+        removeSongCKRecord(songRecordID)
+    }
+    
+    func removeSongCKRecord(songRecordID: CKRecordID) {
         CloudKitManager.sharedManager.deleteRecordWithID(songRecordID) { (recordID, error) in
             if let error = error {
-                print("error deleting song from cloudkit - \(error.localizedDescription)")
+                print("error deleting song from cloudkit - \(error.localizedDescription)... trying again...")
+                self.removeSongCKRecord(songRecordID)
             }
         }
     }
@@ -57,12 +61,17 @@ class SongController {
         }
         PlaylistController.sharedController.save()
         if let songRecord = song.cloudKitRecord {
-            CloudKitManager.sharedManager.modifyRecords([songRecord], perRecordCompletion: nil, completion: { (records, error) in
-                if let error = error {
-                    print("Error saving song's previously played update to CK - \(error.localizedDescription)")
-                }
-            })
+            modifySongRecords([songRecord])
         }
+    }
+    
+    func modifySongRecords(recordsToModify: [CKRecord]) {
+        CloudKitManager.sharedManager.modifyRecords(recordsToModify, perRecordCompletion: nil, completion: { (records, error) in
+            if let error = error {
+                print("Error saving song's previously played update to CK - \(error.localizedDescription)... trying again...")
+                self.modifySongRecords(recordsToModify)
+            }
+        })
     }
     
     func songWithID(id: String) -> Song? {
@@ -81,20 +90,23 @@ class SongController {
         return result?.first
     }
     
-    func addVoteToSong(song: Song, vote: Int, playlist: String) {
+    func addVoteToSong(song: Song, voteDirection: Int, playlist: String) {
         if let user = UserController.getUser() {
-            let vote  = Vote(song: song, creator: user, playlist: playlist, vote: vote)
+            let vote  = Vote(song: song, creator: user, playlist: playlist, vote: voteDirection)
             PlaylistController.sharedController.save()
             if let vote = vote, voteRecord = vote.cloudKitRecord {
-                CloudKitManager.sharedManager.saveRecord(voteRecord, completion: { (record, error) in
-                    if let record = record {
-                        vote.update(record)
-                    } else if let error = error {
-                        print("error saving vote - \(error.localizedDescription)")
-                    }
-                })
+                saveVoteToCK(voteRecord)
             }
         }
+    }
+    
+    func saveVoteToCK(voteRecord: CKRecord) {
+        CloudKitManager.sharedManager.saveRecord(voteRecord, completion: { (record, error) in
+            if let error = error {
+                print("error saving vote - \(error.localizedDescription)... trying again...")
+                self.saveVoteToCK(voteRecord)
+            }
+        })
     }
     
     func deleteVote(vote: Vote) {
@@ -120,7 +132,8 @@ class SongController {
         if let voteRecord = vote.cloudKitRecord {
             CloudKitManager.sharedManager.deleteRecordWithID(voteRecord.recordID, completion: { (recordID, error) in
                 if let error = error {
-                    print("error deleting vote - \(error.localizedDescription)")
+                    print("error deleting vote - \(error.localizedDescription)... trying again....")
+                    self.deleteCloudKitVote(vote)
                 }
             })
         }

@@ -10,7 +10,7 @@ import UIKit
 import CoreData
 
 class PlaylistTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -21,6 +21,7 @@ class PlaylistTableViewController: UITableViewController, NSFetchedResultsContro
         PlaylistController.sharedController.fetchedResultsController.delegate = self
         self.navigationController?.toolbarHidden = true
         
+        PlaylistController.sharedController.setNumberOfSubscriptions()
     }
 
     // MARK: - Table view data source
@@ -152,6 +153,18 @@ class PlaylistTableViewController: UITableViewController, NSFetchedResultsContro
         while !(resp is UIAlertController) { resp = resp.nextResponder()! }
         let alert = resp as! UIAlertController
         (alert.actions[0] as UIAlertAction).enabled = (firstNameTextField.text != "" && lastNameTextField.text != "")
+    }
+    
+    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+        if (identifier == "toCreate" || identifier == "toJoin") && PlaylistController.sharedController.changeSubscriptionCount(0) >= 96 {
+            let alert = UIAlertController(title: "Error", message: "Too many playlists. Delete one or more to continue.", preferredStyle: .Alert)
+            let dismissAction = UIAlertAction(title: "Dismiss", style: .Default, handler: nil)
+            alert.addAction(dismissAction)
+            presentViewController(alert, animated: true, completion: nil)
+            return false
+        } else {
+            return true
+        }
     }
 
 }

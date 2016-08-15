@@ -19,11 +19,13 @@ class UserController {
         if let userRecord = user.cloudKitRecord {
             CloudKitManager.sharedManager.saveRecord(userRecord, completion: { (record, error) in
                 if let error = error {
-                    print("Error saving user - \(error.localizedDescription)")
+                    print("Error saving user - \(error.localizedDescription)... trying again...")
+                    self.saveUser(user)
                 }
             })
         }
     }
+    
     
     static func getUserID() -> String {
         guard let loggedInUser = NSUserDefaults.standardUserDefaults().objectForKey(keyLoggedInUser) as? [String : AnyObject],

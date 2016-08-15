@@ -14,54 +14,57 @@ class MusicController: NSObject, AVAudioPlayerDelegate {
     
     static let sharedController = MusicController()
     
-    let controller = MPMusicPlayerController.applicationMusicPlayer()
+    let controller = MPMusicPlayerController.systemMusicPlayer()
     
     var delegate: nextButtonProtocol?
-    let remoteCenter = MPRemoteCommandCenter.sharedCommandCenter()
-    let infoCenter = MPNowPlayingInfoCenter.defaultCenter()
-    let myPlay = AVAudioPlayer()
-    var player: AVAudioPlayer!
+
+    var ignoreCount = 0
     
     override init() {
         super.init()
-        //let remoteCenter = MPRemoteCommandCenter.sharedCommandCenter()
-        remoteCenter.pauseCommand.enabled = true
-        remoteCenter.playCommand.enabled = true
-        remoteCenter.nextTrackCommand.enabled = true
-        remoteCenter.togglePlayPauseCommand.enabled = true
-        remoteCenter.playCommand.addTarget(self, action: #selector(play))
-        remoteCenter.pauseCommand.addTarget(self, action: #selector(pause))
-        remoteCenter.nextTrackCommand.addTarget(self, action: #selector(nextButtonClicked))
-        remoteCenter.togglePlayPauseCommand.addTarget(self, action: #selector(pause))
         controller.beginGeneratingPlaybackNotifications()
-        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(MusicController.songNotification(_:)), name: MPMusicPlayerControllerNowPlayingItemDidChangeNotification, object: nil)
         UIApplication.sharedApplication().beginReceivingRemoteControlEvents()
-        configureNowPlaying()
-        
     }
     
-    func configureNowPlaying() {
-        infoCenter.nowPlayingInfo = ["Hi":"Test"]
+    func incrementIgnoreCount(by: Int) {
+        ignoreCount = ignoreCount + by
     }
     
+    //http://stackoverflow.com/questions/25812268/core-data-error-exception-was-caught-during-core-data-change-processing
+    
+    func songNotification(notification: NSNotification) {
+        if let userInfo = notification.userInfo, reasonValue = userInfo["MPMusicPlayerControllerNowPlayingItemPersistentIDKey"] as? Int {
+            if ignoreCount > 0 {
+                if ignoreCount > 3 {
+                    ignoreCount = 3
+                }
+                ignoreCount = ignoreCount - 1
+                if reasonValue != 0 && ignoreCount == 1 {
+                    ignoreCount = 0
+                }
+            } else {
+                if reasonValue == 0 {
+                    delegate?.nextButtonClicked()
+                    ignoreCount = ignoreCount - 1
+                }
+            }
+        }
+    }
     
     func setQueue(trackIDs: [String]) {
         controller.setQueueWithStoreIDs(trackIDs)
     }
     
     func play() {
-        NSLog("play")
         controller.play()
-        myPlay.play()
     }
     
     func pause() {
-        NSLog("pause")
         controller.pause()
     }
     
     func nextSong() {
-        NSLog("next song")
         controller.skipToNextItem()
     }
     

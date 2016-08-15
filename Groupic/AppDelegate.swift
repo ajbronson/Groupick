@@ -18,6 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        UIApplication.sharedApplication().idleTimerDisabled = true
         UIApplication.sharedApplication().registerForRemoteNotifications()
         
         do {
@@ -65,6 +66,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 fetchRecord(recordID, completion: { (record) in
                     if let record = record {
                         let song = Song(record: record)
+                        print("Added By \(song?.addedBy)")
+                        print("Artist \(song?.artist)")
+                        print("Change Token \(song?.changeToken)")
+                        print("Date Created \(song?.dateCreated)")
+                        print("ID \(song?.id)")
+                        print("Playlist \(song?.playlist)")
+                        print("Previously Played \(song?.previouslyPlayed)")
+                        print("Title \(song?.title)")
+                        print("TrackID \(song?.trackID)")
+                        print("Votes \(song?.votes)")
+                        if song?.addedBy == nil || song?.artist == nil || song?.playlist == nil || song?.title == nil || song?.dateCreated == nil || song?.trackID == nil || song?.id == nil {
+                            print("Fatal Error")
+                        }
                         PlaylistController.sharedController.save()
                         if let song = song {
                             if let root = UIApplication.topViewController() as? SongsTableViewController {
@@ -150,7 +164,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         if let vote = vote {
                             if let root = UIApplication.topViewController() as? SongsTableViewController {
                                 if root.playlist?.id == vote.song.playlist.id {
-                                    root.changeCKVote(vote, add: true)
+                                    root.changeCKVote(vote, add: true, song: vote.song)
                                 }
                             }
                         }
@@ -162,7 +176,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 if let vote = vote {
                     if let root = UIApplication.topViewController() as? SongsTableViewController {
                         if root.playlist?.id == vote.playlistRecordName {
-                            root.changeCKVote(vote, add: false)
+                            root.changeCKVote(vote, add: false, song: vote.song)
                         }
                     }
                     SongController.sharedController.deleteVote(vote)
